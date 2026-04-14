@@ -40,124 +40,267 @@
   <section class="task-section">
     <div class="container">
 
+      <!-- ==================== TASK 5.1 ==================== -->
+      <div class="section-divider">Task 5.1</div>
+      <div class="task-card">
+        <h3>Task 5.1: Context Window 三大陷阱 — 你的資訊是怎麼消失的</h3>
+      </div>
+
+      <!-- SVG: Lost in the middle -->
+      <div class="flow-diagram">
+        <svg viewBox="0 0 600 160" fill="none" xmlns="http://www.w3.org/2000/svg" style="max-width: 600px;">
+          <g class="flow-step">
+            <!-- Bar chart showing attention -->
+            <rect x="40" y="20" width="80" height="100" rx="4" fill="#10b981" opacity="0.8"/>
+            <text x="80" y="140" text-anchor="middle" fill="#10b981" font-size="11" font-weight="600">開頭</text>
+            <text x="80" y="154" text-anchor="middle" fill="#a1a1aa" font-size="9">注意力高</text>
+          </g>
+          <g class="flow-step">
+            <rect x="160" y="60" width="80" height="60" rx="4" fill="#f59e0b" opacity="0.5"/>
+            <text x="200" y="140" text-anchor="middle" fill="#f59e0b" font-size="11" font-weight="600">中間</text>
+            <text x="200" y="154" text-anchor="middle" fill="#a1a1aa" font-size="9">容易遺漏!</text>
+          </g>
+          <g class="flow-step">
+            <rect x="280" y="75" width="80" height="45" rx="4" fill="#ef4444" opacity="0.4"/>
+            <text x="320" y="140" text-anchor="middle" fill="#ef4444" font-size="11" font-weight="600">中後段</text>
+            <text x="320" y="154" text-anchor="middle" fill="#a1a1aa" font-size="9">最危險!</text>
+          </g>
+          <g class="flow-step">
+            <rect x="400" y="30" width="80" height="90" rx="4" fill="#10b981" opacity="0.7"/>
+            <text x="440" y="140" text-anchor="middle" fill="#10b981" font-size="11" font-weight="600">結尾</text>
+            <text x="440" y="154" text-anchor="middle" fill="#a1a1aa" font-size="9">注意力回升</text>
+          </g>
+          <g class="flow-step">
+            <text x="540" y="50" fill="#e4e4e7" font-size="11" font-weight="700">Lost in</text>
+            <text x="540" y="68" fill="#e4e4e7" font-size="11" font-weight="700">the Middle</text>
+            <text x="540" y="90" fill="#a1a1aa" font-size="9">模型可靠處理</text>
+            <text x="540" y="104" fill="#a1a1aa" font-size="9">開頭和結尾，</text>
+            <text x="540" y="118" fill="#a1a1aa" font-size="9">但中間段落</text>
+            <text x="540" y="132" fill="#ef4444" font-size="9" font-weight="600">容易被忽略</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Before/After: Verbose tool output -->
+      <div class="compare-card">
+        <div class="compare-grid">
+          <div class="compare-side bad">
+            <div class="compare-label">✗ 把 tool output 原封不動放進 context</div>
+<pre>order_lookup 回傳 40+ 欄位：
+{
+  "order_id": "ORD-123",
+  "customer_id": "C-456",
+  "billing_address": "...",
+  "shipping_address": "...",
+  "payment_method": "...",
+  "payment_last4": "...",
+  "loyalty_points": 1234,
+  "referral_code": "...",
+  ... 還有 32 個欄位 ...
+}
+
+// 問題：佔用大量 token
+// 你只需要 5 個退貨相關欄位
+// 其他 35 個欄位是噪音</pre>
+          </div>
+          <div class="compare-side good">
+            <div class="compare-label">✓ 修剪後只保留相關欄位</div>
+<pre>// PostToolUse hook 修剪 output
+{
+  "order_id": "ORD-123",
+  "status": "delivered",
+  "total": 89.99,
+  "items": [...],
+  "return_window_end": "2026-05-01"
+}
+
+// 只保留退貨相關的 5 個欄位
+// 省下 80% 的 token
+// Claude 不會被無關資訊干擾
+
+// 額外策略：
+// 1. 關鍵事實放到 prompt 開頭
+// 2. 用 section header 組織內容
+// 3. 數字/日期抽到 "case facts" 區塊</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-example">
+        <div class="code-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="code-title"><span class="code-lang">Python</span> Case Facts 持久化技巧</span>
+          <span class="code-toggle">▼</span>
+        </div>
+        <div class="code-body">
+<pre><span class="hl-cm"># 把交易事實抽到獨立區塊，每次 prompt 都包含</span>
+<span class="hl-cm"># 避免 progressive summarization 把數字模糊化</span>
+
+case_facts = <span class="hl-str">"""
+=== CASE FACTS (DO NOT SUMMARIZE) ===
+Customer: C-456 (Jane Chen, Premium member)
+Order: ORD-123, delivered 2026-03-15
+Total: $89.99 (2 items)
+Return window: expires 2026-05-01
+Issue: Item #2 damaged on arrival
+Photo evidence: provided ✓
+Refund amount: $45.00 (item #2 only)
+=== END CASE FACTS ===
+"""</span>
+
+<span class="hl-cm"># 每次 API 呼叫都把 case_facts 放在 prompt 開頭</span>
+<span class="hl-cm"># → 不管對話多長，關鍵數字永遠不會被摘要掉</span></pre>
+        </div>
+      </div>
+
+      <!-- ==================== TASK 5.2 ==================== -->
+      <div class="section-divider">Task 5.2</div>
+      <div class="task-card">
+        <h3>Task 5.2: Escalation — 什麼時候該轉人工？</h3>
+      </div>
+
+      <div class="decision-tree" id="dt-escalate">
+        <div class="dt-node">
+          <div class="dt-question">客戶說了什麼？</div>
+          <div class="dt-choices">
+            <button class="dt-choice" onclick="showDtResult('esc-1', this)">「我要跟真人講話」</button>
+            <button class="dt-choice" onclick="showDtResult('esc-2', this)">「你們能不能比價？」（政策沒寫）</button>
+            <button class="dt-choice" onclick="showDtResult('esc-3', this)">「我的東西壞了，要退貨」（有照片）</button>
+            <button class="dt-choice" onclick="showDtResult('esc-4', this)">客戶語氣很不好但問題很簡單</button>
+          </div>
+        </div>
+        <div class="dt-result" id="esc-1">
+          <strong>→ 立即 escalate。</strong><br>
+          客戶明確要求轉人工 → 不要嘗試調查，不要試圖解決，<strong>直接轉接</strong>。<br>
+          這是最優先的 escalation 觸發條件。
+        </div>
+        <div class="dt-result" id="esc-2">
+          <strong>→ Escalate（政策缺口）。</strong><br>
+          政策只寫了「自家價格調整」，沒寫比價。政策<strong>模糊或沈默</strong>的情況 → agent 不該猜測，應該 escalate。<br>
+          讓人類做政策判斷。
+        </div>
+        <div class="dt-result" id="esc-3">
+          <strong>→ 自主處理。</strong><br>
+          這是標準的損壞退貨流程，有照片證據，在 agent 能力範圍內。<br>
+          Escalate 這種簡單案例 = 浪費人工資源，降低首次解決率。
+        </div>
+        <div class="dt-result" id="esc-4">
+          <strong>→ 先嘗試解決，被拒絕才 escalate。</strong><br>
+          承認客戶的挫折感，同時提供解決方案。<br>
+          如果客戶<strong>再次堅持</strong>要轉人工 → 那時才 escalate。<br>
+          <strong>注意：</strong>情緒 ≠ 複雜度。不要用情緒分析來觸發 escalation。
+        </div>
+      </div>
+
       <div class="key-concept">
-        <strong>核心考點：</strong>Progressive summarization 的陷阱、Lost-in-the-middle 效應、Escalation 的正確時機、結構化錯誤傳播、Scratchpad 檔案抗 context 退化、來源追溯（provenance）的重要性。
+        <strong>考試陷阱：</strong>「讓 agent 自報信心分數 1-10」是<strong>錯誤答案</strong>。LLM 自報信心校準很差 — 在困難案例上反而過度自信。正確做法：<strong>明確標準 + few-shot 範例</strong>。
       </div>
 
+      <!-- ==================== TASK 5.3 ==================== -->
+      <div class="section-divider">Task 5.3</div>
       <div class="task-card">
-        <h3>Task 5.1: 在長對話中保留關鍵資訊</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li><strong>Progressive summarization 風險：</strong>數值、百分比、日期、客戶明確期望被濃縮成模糊摘要</li>
-          <li><strong>Lost-in-the-middle 效應：</strong>模型可靠處理輸入的開頭和結尾，但可能遺漏中間段落的 finding</li>
-          <li>Tool results 在 context 中累積，消耗 token 但相關性低（如 order lookup 40+ fields 只需要 5 個）</li>
-          <li>後續 API 請求必須傳完整對話歷史以維持對話連貫性</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>將交易事實（金額、日期、訂單號、狀態）抽取到持久性 "case facts" 區塊，每次 prompt 都包含</li>
-          <li>修剪冗長的 tool output 只保留相關欄位（如 order lookup 只保留退貨相關欄位）</li>
-          <li>關鍵 finding 摘要放在聚合輸入的<strong>開頭</strong>，詳細結果用明確 section header 組織 → 對抗位置效應</li>
-          <li>要求 subagent 在結構化輸出中包含 metadata（日期、來源位置、方法論 context）</li>
-          <li>修改上游 agent 回傳結構化資料（key facts、citations、relevance scores）而非冗長的推理鏈</li>
-        </ul>
+        <h3>Task 5.3: 跨 Agent 錯誤傳播 — 別壓抑也別崩潰</h3>
       </div>
 
+      <div class="think-card">
+        <div class="think-scenario">
+          <h4>情境思考：subagent 搜尋 timeout 了，coordinator 該怎麼辦？</h4>
+          <p>Web search subagent 在搜尋中 timeout。你要設計錯誤回傳方式。哪個選項讓 coordinator 能做最好的決策？</p>
+        </div>
+        <div class="think-options">
+          <button class="think-opt" data-correct="true" onclick="handleThink(this)">A) 回傳結構化錯誤：失敗類型 + 嘗試的查詢 + 部分結果 + 替代建議</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">B) 自動重試 3 次後回傳「搜尋不可用」</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">C) 攔截 timeout，回傳空結果標記為成功</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">D) 把 exception 直接丟出去，終止整個工作流</button>
+        </div>
+        <div class="think-reveal">
+          <strong>A — 結構化錯誤 context。</strong>Coordinator 拿到這些資訊後可以：<br>
+          - 用修改後的查詢重試 ✓<br>
+          - 嘗試替代方案 ✓<br>
+          - 用部分結果繼續並標注覆蓋缺口 ✓<br><br>
+          <strong>B</strong> 的「搜尋不可用」隱藏了所有 context，coordinator 變瞎子。<br>
+          <strong>C</strong> 壓抑錯誤 — 最危險的反模式，coordinator 以為成功了但資料不完整。<br>
+          <strong>D</strong> 一個 subagent 失敗就整個掛 — 太脆弱。
+        </div>
+      </div>
+
+      <!-- ==================== TASK 5.4 ==================== -->
+      <div class="section-divider">Task 5.4</div>
       <div class="task-card">
-        <h3>Task 5.2: 設計有效的 Escalation 和歧義解決模式</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li>適當的 escalation 觸發：客戶要求轉人工、政策例外/缺口、無法取得有意義的進展</li>
-          <li>客戶明確要求轉人工 → <strong>立即 escalate</strong>；問題在 agent 能力範圍內 → 先提供解決方案</li>
-          <li><strong>情緒分析和自報信心分數</strong>是案例複雜度的<strong>不可靠代理指標</strong></li>
-          <li>多重客戶匹配 → 要求額外識別資訊澄清，而非用 heuristic 選擇</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>在 system prompt 加明確 escalation 標準 + few-shot 範例</li>
-          <li>客戶明確要求人工 → 立即轉接，不先嘗試調查</li>
-          <li>承認挫折感同時提供解決方案；客戶再次堅持才 escalate</li>
-          <li>政策模糊或沉默 → escalate（如政策只提到自家調價，客戶要求比價）</li>
-          <li>工具回傳多筆匹配 → 要求額外識別資訊，不用 heuristic 選</li>
-        </ul>
+        <h3>Task 5.4: 長 Session 的 Context 退化 — Scratchpad 和 /compact</h3>
+      </div>
+
+      <div class="compare-card">
+        <div class="compare-grid">
+          <div class="compare-side bad">
+            <div class="compare-label">✗ 不處理 context 退化</div>
+<pre>Turn 1: "src/auth/ 有 AuthService class"
+Turn 50: "讓我看看... 根據典型模式，
+         認證模組通常會有..."
+
+// 50 turn 後 Claude 開始：
+// - 引用「典型模式」而非之前發現的
+// - 給不一致的答案
+// - 忘記之前發現的 class 名稱
+// 這就是 context 退化</pre>
+          </div>
+          <div class="compare-side good">
+            <div class="compare-label">✓ 用 Scratchpad 對抗退化</div>
+<pre>// Agent 維護 scratchpad 檔案
+// exploration_notes.md:
+## 認證模組 (src/auth/)
+- AuthService: 主要入口
+- TokenManager: JWT 處理
+- 依賴: Redis session store
+
+## 資料庫 (src/db/)
+- UserRepo: repository pattern
+- 依賴: Prisma ORM
+
+// 後續問題都先讀 scratchpad
+// → 即使 context 退化也有準確記錄
+
+// 其他策略：
+// - /compact 壓縮冗長的探索輸出
+// - spawn subagent 做冗長探索
+// - 階段間摘要注入下階段 context</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TASK 5.5 & 5.6 ==================== -->
+      <div class="section-divider">Task 5.5 & 5.6</div>
+      <div class="task-card">
+        <h3>Task 5.5–5.6: 信心校準和來源追溯</h3>
+      </div>
+
+      <div class="think-card">
+        <div class="think-scenario">
+          <h4>情境思考：你的抽取系統 97% 準確率，可以自動化嗎？</h4>
+          <p>你的文件抽取系統整體準確率 97%。老闆說「夠好了，自動化吧」。你應該怎麼回應？</p>
+        </div>
+        <div class="think-options">
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">A) 97% 很高了，可以全面自動化</button>
+          <button class="think-opt" data-correct="true" onclick="handleThink(this)">B) 需要先按文件類型和欄位拆開看，97% 可能掩蓋特定類型的低準確率</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">C) 加一個信心門檻，低信心的送人工</button>
+        </div>
+        <div class="think-reveal">
+          <strong>B — 聚合指標會掩蓋問題。</strong><br><br>
+          97% overall 可能是：發票 99.5% + 合約 99% + 手寫表格 <strong>70%</strong>。手寫表格拉低了整體，但被其他類型稀釋了。<br><br>
+          <strong>正確步驟：</strong><br>
+          1. 按<strong>文件類型</strong>和<strong>欄位</strong>分析準確率<br>
+          2. 對高信心抽取做<strong>分層隨機抽樣</strong>（不是只看低信心的）<br>
+          3. 全部段都一致後才自動化<br>
+          4. 持續監控，偵測新型錯誤模式<br><br>
+          C 不夠：只路由低信心的會漏掉高信心但錯誤的案例。
+        </div>
       </div>
 
       <div class="key-concept">
-        <strong>考試陷阱：</strong>「讓 agent 自報信心分數 1-10 來決定是否 escalate」是<strong>錯誤答案</strong>。LLM 自報信心校準很差 — agent 在困難案例上反而可能過度自信。正確做法是用<strong>明確標準 + few-shot 範例</strong>。
-      </div>
-
-      <div class="task-card">
-        <h3>Task 5.3: 跨多 Agent 系統的錯誤傳播策略</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li>結構化錯誤 context（失敗類型、嘗試的查詢、部分結果、替代方案）→ 讓 coordinator 做智慧恢復</li>
-          <li>區分<strong>存取失敗</strong>（timeout，需重試決策）vs <strong>合法空結果</strong>（查詢成功但無匹配）</li>
-          <li>泛用錯誤狀態（"search unavailable"）隱藏了 coordinator 需要的 context</li>
-          <li>兩種<strong>反模式</strong>：靜默壓抑錯誤（空結果當成功）、單一失敗終止整個工作流</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>回傳結構化錯誤 context：失敗類型 + 嘗試了什麼 + 部分結果 + 替代方案</li>
-          <li>區分存取失敗 vs 合法空結果</li>
-          <li>Subagent 本地處理暫時性錯誤，只傳播無法解決的錯誤（附帶部分結果和嘗試記錄）</li>
-          <li>Synthesis 輸出加覆蓋標注：哪些 finding 有充分支持、哪些領域因來源不可用而有缺口</li>
-        </ul>
-      </div>
-
-      <div class="task-card">
-        <h3>Task 5.4: 大型 Codebase 探索中的 Context 管理</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li><strong>Context 退化</strong>：長 session 後模型開始給不一致答案，引用「典型模式」而非之前發現的特定類別</li>
-          <li><strong>Scratchpad 檔案</strong>：跨 context 邊界持久化關鍵發現</li>
-          <li>Subagent 委派：隔離冗長探索輸出，主 agent 保持高階協調</li>
-          <li>結構化狀態持久化：每個 agent 匯出狀態到已知位置，coordinator 載入 manifest 恢復</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>Spawn subagent 調查特定問題（「找所有測試檔」「追蹤退款流程依賴」）</li>
-          <li>Agent 維護 scratchpad 檔案記錄關鍵發現，後續問題引用它們對抗 context 退化</li>
-          <li>探索階段間摘要關鍵發現，注入 subagent 的初始 context</li>
-          <li>用結構化 agent 狀態匯出（manifest）設計 crash recovery</li>
-          <li>用 <code>/compact</code> 在長 session 中減少 context 使用量</li>
-        </ul>
-      </div>
-
-      <div class="task-card">
-        <h3>Task 5.5: 設計人工審查工作流與信心校準</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li>聚合準確度指標（如 97% overall）可能<strong>掩蓋</strong>特定文件類型或欄位的差勁表現</li>
-          <li><strong>分層隨機抽樣</strong>：測量高信心抽取的錯誤率、偵測新型錯誤模式</li>
-          <li>用標記驗證集校準 field-level confidence scores 來路由審查注意力</li>
-          <li>自動化前需按文件類型和欄位段驗證準確度一致性</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>對高信心抽取實施分層隨機抽樣，持續量測錯誤率</li>
-          <li>按文件類型和欄位分析準確度，驗證各段一致性</li>
-          <li>模型輸出 field-level confidence scores → 用標記驗證集校準審查閾值</li>
-          <li>低信心或來源模糊/矛盾的抽取 → 路由到人工審查</li>
-        </ul>
-      </div>
-
-      <div class="task-card">
-        <h3>Task 5.6: 在多來源綜合中保留資訊來源追溯並處理不確定性</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li>來源歸因在摘要步驟中流失：finding 被壓縮但沒保留 claim-source mapping</li>
-          <li>結構化的 claim-source mapping：synthesis agent 必須保留並合併</li>
-          <li>可信來源的衝突統計數據 → 用來源歸因標注衝突，而非隨意選一個值</li>
-          <li>時間資料：要求在結構化輸出中包含出版/收集日期，防止時間差異被誤判為矛盾</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>要求 subagent 輸出結構化 claim-source mapping（source URL、文件名、相關摘錄）</li>
-          <li>報告中明確區分有充分支持的發現 vs 有爭議的發現，保留原始來源描述和方法論 context</li>
-          <li>衝突值全部保留並標注來源，讓 coordinator 決定如何調和</li>
-          <li>要求 subagent 包含出版或資料收集日期</li>
-          <li>不同內容類型用適當格式呈現：財務 → 表格、新聞 → 散文、技術 → 結構化清單</li>
-        </ul>
+        <strong>來源追溯（Provenance）速記：</strong><br>
+        1. Subagent 輸出必須包含 <strong>claim-source mapping</strong>（來源 URL、文件名、摘錄）<br>
+        2. 衝突的統計數據 → <strong>保留兩個值 + 來源標注</strong>，不要隨意選一個<br>
+        3. 要求包含 <strong>出版/收集日期</strong>，防止時間差異被誤判為矛盾<br>
+        4. 不同內容類型用<strong>不同格式</strong>呈現（財務 → 表格、新聞 → 散文）
       </div>
 
     </div>
@@ -173,5 +316,19 @@
   </footer>
 
   <script src="js/main.js"></script>
+  <script>
+    function handleThink(btn) {
+      const card = btn.closest('.think-card');
+      card.querySelectorAll('.think-opt').forEach(o => { o.disabled = true; o.classList.add(o.dataset.correct === 'true' ? 'correct' : 'wrong'); });
+      card.querySelector('.think-reveal').classList.add('show');
+    }
+    function showDtResult(id, btn) {
+      const tree = btn.closest('.decision-tree');
+      tree.querySelectorAll('.dt-result').forEach(r => r.classList.remove('show'));
+      tree.querySelectorAll('.dt-choice').forEach(c => c.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById(id).classList.add('show');
+    }
+  </script>
 </body>
 </html>

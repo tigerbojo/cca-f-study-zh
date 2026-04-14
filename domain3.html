@@ -40,123 +40,220 @@
   <section class="task-section">
     <div class="container">
 
+      <!-- ==================== TASK 3.1 ==================== -->
+      <div class="section-divider">Task 3.1</div>
+      <div class="task-card">
+        <h3>Task 3.1: CLAUDE.md 三層架構 — 誰的指令覆蓋誰？</h3>
+        <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1rem;">
+          CLAUDE.md 有三層，搞混了 → 團隊成員收不到指令，或個人設定洩漏到 repo。
+        </p>
+      </div>
+
+      <!-- SVG: CLAUDE.md Hierarchy -->
+      <div class="flow-diagram">
+        <svg viewBox="0 0 650 240" fill="none" xmlns="http://www.w3.org/2000/svg" style="max-width: 650px;">
+          <!-- User level -->
+          <g class="flow-step">
+            <rect x="10" y="20" width="190" height="90" rx="10" fill="#1c1c20" stroke="#f59e0b" stroke-width="2"/>
+            <text x="105" y="48" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="700">用戶級</text>
+            <text x="105" y="68" text-anchor="middle" fill="#a1a1aa" font-size="9.5">~/.claude/CLAUDE.md</text>
+            <text x="105" y="86" text-anchor="middle" fill="#a1a1aa" font-size="9">✗ 不進 git  ✓ 只影響自己</text>
+            <text x="105" y="102" text-anchor="middle" fill="#f59e0b" font-size="8.5">個人偏好、快捷鍵、語言設定</text>
+          </g>
+          <!-- Project level -->
+          <g class="flow-step">
+            <rect x="230" y="20" width="190" height="90" rx="10" fill="#1c1c20" stroke="#10b981" stroke-width="2"/>
+            <text x="325" y="48" text-anchor="middle" fill="#10b981" font-size="12" font-weight="700">專案級</text>
+            <text x="325" y="68" text-anchor="middle" fill="#a1a1aa" font-size="9.5">.claude/CLAUDE.md 或根目錄</text>
+            <text x="325" y="86" text-anchor="middle" fill="#a1a1aa" font-size="9">✓ 進 git  ✓ 團隊共享</text>
+            <text x="325" y="102" text-anchor="middle" fill="#10b981" font-size="8.5">coding standard、測試慣例</text>
+          </g>
+          <!-- Directory level -->
+          <g class="flow-step">
+            <rect x="450" y="20" width="190" height="90" rx="10" fill="#1c1c20" stroke="#6366f1" stroke-width="2"/>
+            <text x="545" y="48" text-anchor="middle" fill="#6366f1" font-size="12" font-weight="700">目錄級</text>
+            <text x="545" y="68" text-anchor="middle" fill="#a1a1aa" font-size="9.5">子目錄/CLAUDE.md</text>
+            <text x="545" y="86" text-anchor="middle" fill="#a1a1aa" font-size="9">✓ 進 git  ✓ 只在該目錄生效</text>
+            <text x="545" y="102" text-anchor="middle" fill="#6366f1" font-size="8.5">特定模組的覆寫規則</text>
+          </g>
+          <!-- Arrows -->
+          <g class="flow-step">
+            <line x1="200" y1="65" x2="230" y2="65" stroke="#52525b" stroke-width="1.5" marker-end="url(#arrowD)"/>
+            <line x1="420" y1="65" x2="450" y2="65" stroke="#52525b" stroke-width="1.5" marker-end="url(#arrowD)"/>
+          </g>
+          <!-- .claude/rules/ alternative -->
+          <g class="flow-step">
+            <rect x="140" y="145" width="370" height="75" rx="10" fill="#1c1c20" stroke="#c084fc" stroke-width="2" stroke-dasharray="6 3"/>
+            <text x="325" y="170" text-anchor="middle" fill="#c084fc" font-size="12" font-weight="700">替代方案：.claude/rules/ + glob pattern</text>
+            <text x="325" y="190" text-anchor="middle" fill="#a1a1aa" font-size="9.5">paths: ["**/*.test.tsx"] → 跨目錄套用</text>
+            <text x="325" y="206" text-anchor="middle" fill="#c084fc" font-size="8.5">測試檔散佈在 codebase 各處時的最佳解</text>
+          </g>
+          <defs><marker id="arrowD" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#52525b"/></marker></defs>
+        </svg>
+      </div>
+
+      <div class="think-card">
+        <div class="think-scenario">
+          <h4>情境思考：新同事為什麼沒有收到 code review 規範？</h4>
+          <p>你設定了嚴格的 code review 規範（一定要跑 lint、commit message 格式等）。但新入職的同事說 Claude Code 完全沒遵守。你的設定放在哪裡有問題？</p>
+        </div>
+        <div class="think-options">
+          <button class="think-opt" data-correct="true" onclick="handleThink(this)">A) 放在 ~/.claude/CLAUDE.md — 用戶級，只有你自己看得到</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">B) 放在 .claude/CLAUDE.md — 專案級，新同事 pull 就有</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">C) 放在 .claude/rules/review.md — 路徑規則檔</button>
+        </div>
+        <div class="think-reveal">
+          <strong>A 是問題所在。</strong><code>~/.claude/CLAUDE.md</code> 是用戶級設定，不進 version control，新同事的機器上根本沒有這個檔案。<br><br>
+          <strong>修正：</strong>把團隊共享的規範移到專案級 <code>.claude/CLAUDE.md</code> 或 <code>.claude/rules/</code>，這樣 clone repo 就自動套用。
+        </div>
+      </div>
+
+      <!-- ==================== TASK 3.2 ==================== -->
+      <div class="section-divider">Task 3.2</div>
+      <div class="task-card">
+        <h3>Task 3.2: Slash Command vs Skill — 什麼時候用哪個？</h3>
+      </div>
+
+      <div class="compare-card">
+        <div class="compare-grid">
+          <div class="compare-side good" style="border-color: #06b6d4;">
+            <div class="compare-label" style="color: #06b6d4;">Slash Command</div>
+<pre>.claude/commands/review.md
+  → /review 即可呼叫
+  → 簡單的 prompt template
+  → 沒有 frontmatter 設定
+
+~/.claude/commands/my-helper.md
+  → 個人用，不進 git
+
+適合：快速指令、固定 prompt</pre>
+          </div>
+          <div class="compare-side good" style="border-color: #f59e0b;">
+            <div class="compare-label" style="color: #f59e0b;">Skill（進階）</div>
+<pre>.claude/skills/analyze/SKILL.md
+---
+context: fork       ← 隔離執行
+allowed-tools: [Read, Grep]  ← 限制工具
+argument-hint: "file path"   ← 提示參數
+---
+
+適合：
+- 產出大量輸出 → context: fork 隔離
+- 需要限制工具存取權
+- 需要參數提示</pre>
+          </div>
+        </div>
+      </div>
+
       <div class="key-concept">
-        <strong>核心考點：</strong>CLAUDE.md 的三層架構（user / project / directory）、<code>.claude/rules/</code> 路徑規則、Slash Command vs Skill 的差異、Plan Mode 的使用時機、<code>-p</code> flag 的 CI/CD 用法。
+        <strong>context: fork</strong> 讓 skill 在隔離的 sub-agent context 中執行，產出的大量文字不會污染你的主對話。適合 codebase 分析、brainstorming 等冗長輸出的場景。
       </div>
 
+      <!-- ==================== TASK 3.3 ==================== -->
+      <div class="section-divider">Task 3.3</div>
       <div class="task-card">
-        <h3>Task 3.1: 設定 CLAUDE.md 的階層、作用域與模組化組織</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li>CLAUDE.md 三層架構：
-            <br>• <strong>用戶級</strong> <code>~/.claude/CLAUDE.md</code> — 只影響自己，不進 version control
-            <br>• <strong>專案級</strong> <code>.claude/CLAUDE.md</code> 或根目錄 <code>CLAUDE.md</code> — 團隊共享
-            <br>• <strong>目錄級</strong> 子目錄中的 <code>CLAUDE.md</code> — 特定目錄覆寫
-          </li>
-          <li><code>@import</code> 語法：引用外部檔案保持模組化（如針對每個 package import 不同標準檔）</li>
-          <li><code>.claude/rules/</code> 目錄：依主題分檔的規則，替代巨型 CLAUDE.md</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>診斷層級問題（如新同事沒收到指令 → 因為指令在 user-level 而非 project-level）</li>
-          <li>用 <code>@import</code> 在每個 package 的 CLAUDE.md 選擇性引入相關標準</li>
-          <li>將大型 CLAUDE.md 拆分到 <code>.claude/rules/</code>（如 <code>testing.md</code>、<code>api-conventions.md</code>）</li>
-          <li>用 <code>/memory</code> 指令驗證載入了哪些記憶檔案，診斷跨 session 不一致行為</li>
-        </ul>
+        <h3>Task 3.3: 路徑規則 — 讓正確的 convention 自動套用在正確的檔案</h3>
       </div>
 
-      <div class="task-card">
-        <h3>Task 3.2: 建立自訂 Slash Command 和 Skill</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li><strong>專案級 Command</strong> <code>.claude/commands/</code> — 透過 version control 共享</li>
-          <li><strong>用戶級 Command</strong> <code>~/.claude/commands/</code> — 個人使用</li>
-          <li>Skill 在 <code>.claude/skills/</code> 中搭配 <code>SKILL.md</code>，支援 frontmatter：<code>context: fork</code>、<code>allowed-tools</code>、<code>argument-hint</code></li>
-          <li><code>context: fork</code>：在隔離的 sub-agent context 中跑 skill，避免污染主對話</li>
-          <li>個人 skill 自訂：在 <code>~/.claude/skills/</code> 用不同名稱建立個人變體</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>在 <code>.claude/commands/</code> 建立團隊共享的 slash command</li>
-          <li>用 <code>context: fork</code> 隔離產出大量輸出的 skill（如 codebase 分析）</li>
-          <li>用 <code>allowed-tools</code> 限制 skill 執行時的工具存取權</li>
-          <li>用 <code>argument-hint</code> 在沒給參數時提示開發者</li>
-          <li>判斷：Skill（on-demand、任務導向）vs CLAUDE.md（always-loaded、通用標準）</li>
-        </ul>
+      <div class="code-example">
+        <div class="code-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="code-title"><span class="code-lang">YAML</span> .claude/rules/testing.md 範例</span>
+          <span class="code-toggle">▼</span>
+        </div>
+        <div class="code-body">
+<pre><span class="hl-cm"># 檔案：.claude/rules/testing.md</span>
+---
+<span class="hl-key">paths</span>:
+  - <span class="hl-str">"**/*.test.tsx"</span>    <span class="hl-cm"># 所有 React 測試</span>
+  - <span class="hl-str">"**/*.test.ts"</span>     <span class="hl-cm"># 所有 TS 測試</span>
+  - <span class="hl-str">"**/*.spec.ts"</span>     <span class="hl-cm"># spec 格式測試</span>
+---
+
+<span class="hl-cm"># 只有在編輯匹配的檔案時才載入這些規則</span>
+<span class="hl-cm"># → 減少不相關 context，省 token</span>
+
+測試撰寫規範：
+- 使用 describe/it 結構
+- mock 外部 API，不 mock database
+- 每個 test case 用 AAA 模式 (Arrange-Act-Assert)
+- 測試名稱描述行為，不描述實作
+
+<span class="hl-cm"># 為什麼用 .claude/rules/ 而不是子目錄 CLAUDE.md？</span>
+<span class="hl-cm"># 因為 test 檔散佈在整個 codebase：</span>
+<span class="hl-cm">#   src/components/Button.test.tsx</span>
+<span class="hl-cm">#   src/api/auth.test.ts</span>
+<span class="hl-cm">#   src/utils/date.spec.ts</span>
+<span class="hl-cm"># 子目錄 CLAUDE.md 無法跨目錄套用！</span></pre>
+        </div>
       </div>
 
+      <!-- ==================== TASK 3.4 ==================== -->
+      <div class="section-divider">Task 3.4</div>
       <div class="task-card">
-        <h3>Task 3.3: 用路徑規則做條件式載入</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li><code>.claude/rules/</code> 檔案搭配 YAML frontmatter <code>paths</code> 欄位含 glob pattern</li>
-          <li>路徑規則只在編輯匹配檔案時載入 → 減少不相關 context 和 token 使用</li>
-          <li>Glob pattern 規則優於目錄級 CLAUDE.md → 適合跨多目錄的慣例（如散佈在 codebase 中的測試檔）</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>建立帶 YAML frontmatter 的路徑規則（如 <code>paths: ["terraform/**/*"]</code>）</li>
-          <li>用 glob pattern 對任何位置的特定類型檔案套用慣例（如 <code>**/*.test.tsx</code>）</li>
-          <li>當慣例需跨 codebase 套用時，選路徑規則而非子目錄 CLAUDE.md</li>
-        </ul>
+        <h3>Task 3.4: Plan Mode vs 直接執行 — 什麼時候該思考，什麼時候直接動手？</h3>
+      </div>
+
+      <div class="decision-tree" id="dt-plan">
+        <div class="dt-node">
+          <div class="dt-question">你接下來要做的事情，複雜度如何？</div>
+          <div class="dt-choices">
+            <button class="dt-choice" onclick="showDtResult('plan-1', this)">改一個檔案的一個函式</button>
+            <button class="dt-choice" onclick="showDtResult('plan-2', this)">跨多檔案的 library 遷移</button>
+            <button class="dt-choice" onclick="showDtResult('plan-3', this)">monolith 重構為微服務</button>
+          </div>
+        </div>
+        <div class="dt-result" id="plan-1">
+          <strong>→ 直接執行。</strong><br>
+          範圍明確、改動小、不需要探索。直接寫 code 比規劃更快。<br>
+          例如：加一個日期驗證條件、修一個有 stack trace 的 bug。
+        </div>
+        <div class="dt-result" id="plan-2">
+          <strong>→ 先 Plan Mode 調查，再直接執行。</strong><br>
+          需要先理解哪些檔案受影響、有什麼依賴。Plan Mode 探索 → 確認方案 → 切回直接執行實作。<br>
+          用 <code>Explore</code> subagent 做冗長的探索，避免塞爆主 session 的 context。
+        </div>
+        <div class="dt-result" id="plan-3">
+          <strong>→ 一定要 Plan Mode。</strong><br>
+          多種可行方案、架構決策、數十個檔案。<strong>不先規劃就動手 = 昂貴的返工。</strong><br>
+          Plan Mode 讓你安全探索 codebase 和設計方案，不會產生任何實際變更。
+        </div>
+      </div>
+
+      <!-- ==================== TASK 3.6 ==================== -->
+      <div class="section-divider">Task 3.6</div>
+      <div class="task-card">
+        <h3>Task 3.6: CI/CD 整合 — 讓 Claude Code 在 Pipeline 中自動跑</h3>
+      </div>
+
+      <div class="code-example open">
+        <div class="code-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="code-title"><span class="code-lang">Bash</span> CI/CD 中的 Claude Code 用法</span>
+          <span class="code-toggle">▼</span>
+        </div>
+        <div class="code-body">
+<pre><span class="hl-cm"># ✗ 錯誤：會卡在等待互動式輸入</span>
+claude <span class="hl-str">"Review this PR for security issues"</span>
+
+<span class="hl-cm"># ✓ 正確：-p flag = 非互動模式</span>
+claude <span class="hl-fn">-p</span> <span class="hl-str">"Review this PR for security issues"</span>
+
+<span class="hl-cm"># ✓ 進階：結構化 JSON 輸出 → 自動貼為 PR comment</span>
+claude <span class="hl-fn">-p</span> \
+  <span class="hl-fn">--output-format</span> json \
+  <span class="hl-fn">--json-schema</span> <span class="hl-str">'{"type":"object","properties":{"findings":{"type":"array"}}}'</span> \
+  <span class="hl-str">"Review the diff for bugs and security issues"</span>
+
+<span class="hl-cm"># 重要：產生 code 的 session ≠ review 的 session</span>
+<span class="hl-cm"># 同一個 session 自我 review 效果差</span>
+<span class="hl-cm"># → 用獨立的 Claude instance 做 review</span></pre>
+        </div>
       </div>
 
       <div class="key-concept">
-        <strong>考試重點：</strong>測試檔散佈在整個 codebase（如 <code>Button.test.tsx</code> 和 <code>Button.tsx</code> 同目錄）→ 用 <code>.claude/rules/</code> + glob pattern 是最佳解，因為目錄級 CLAUDE.md 無法跨目錄套用。
-      </div>
-
-      <div class="task-card">
-        <h3>Task 3.4: 判斷何時用 Plan Mode vs 直接執行</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li><strong>Plan Mode</strong>：複雜任務、大規模變更、多種可行方案、架構決策、多檔修改</li>
-          <li><strong>直接執行</strong>：簡單、範圍明確的變更（如單一函式加一個驗證條件）</li>
-          <li>Plan Mode 允許安全地探索 codebase 和設計方案再動手，避免昂貴的返工</li>
-          <li><code>Explore</code> subagent：隔離冗長的探索輸出，回傳摘要保護主對話 context</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>架構性任務 → Plan Mode（微服務重構、45+ 檔案 library 遷移）</li>
-          <li>範圍明確的變更 → 直接執行（單檔 bug fix、加日期驗證條件）</li>
-          <li>用 <code>Explore</code> subagent 做冗長的探索階段，避免 context window 耗盡</li>
-          <li>組合使用：Plan Mode 做調查 + 直接執行做實作</li>
-        </ul>
-      </div>
-
-      <div class="task-card">
-        <h3>Task 3.5: 迭代精煉技巧</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li>具體的 input/output 範例是溝通預期轉換最有效的方式</li>
-          <li>TDD 迭代：先寫測試 → 分享測試失敗結果 → 引導漸進改善</li>
-          <li>Interview pattern：讓 Claude 提問，浮現開發者沒想到的考量</li>
-          <li>多個互相影響的問題 → 一次訊息處理；獨立問題 → 逐一修正</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>提供 2-3 個具體 input/output 範例來釐清轉換需求</li>
-          <li>先寫涵蓋預期行為、邊界案例和效能需求的測試套件</li>
-          <li>在不熟悉的領域用 interview pattern 浮現設計考量（如 cache invalidation 策略）</li>
-          <li>互相影響的問題 → 單一詳細訊息；獨立問題 → 逐一迭代</li>
-        </ul>
-      </div>
-
-      <div class="task-card">
-        <h3>Task 3.6: 將 Claude Code 整合到 CI/CD Pipeline</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li><code>-p</code>（或 <code>--print</code>）flag：在自動化 pipeline 中以非互動模式執行 Claude Code</li>
-          <li><code>--output-format json</code> + <code>--json-schema</code>：在 CI 中產出結構化輸出</li>
-          <li>CLAUDE.md 提供專案 context（測試標準、fixture 慣例、review 標準）給 CI 中的 Claude Code</li>
-          <li>Session context 隔離：產生程式碼的 session 不適合 review 自己的變更 → 需要獨立 review instance</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>用 <code>-p</code> flag 在 CI 中跑 Claude Code，避免互動式輸入卡住</li>
-          <li>用 <code>--output-format json</code> + <code>--json-schema</code> 產出可機器解析的結果，自動貼為 PR inline comment</li>
-          <li>重新 review 時包含先前結果，指示只報告新的或仍未解決的問題（避免重複 comment）</li>
-          <li>在 CLAUDE.md 中記錄測試標準和 fixture，提升測試產出品質</li>
-        </ul>
+        <strong>CI/CD 三大重點：</strong><br>
+        1. <code>-p</code> flag 非互動模式（不加 = pipeline 卡死）<br>
+        2. <code>--output-format json</code> + <code>--json-schema</code> 產出結構化結果<br>
+        3. 用獨立 instance review，不要讓生成 code 的 session 自我 review
       </div>
 
     </div>
@@ -172,5 +269,19 @@
   </footer>
 
   <script src="js/main.js"></script>
+  <script>
+    function handleThink(btn) {
+      const card = btn.closest('.think-card');
+      card.querySelectorAll('.think-opt').forEach(o => { o.disabled = true; o.classList.add(o.dataset.correct === 'true' ? 'correct' : 'wrong'); });
+      card.querySelector('.think-reveal').classList.add('show');
+    }
+    function showDtResult(id, btn) {
+      const tree = btn.closest('.decision-tree');
+      tree.querySelectorAll('.dt-result').forEach(r => r.classList.remove('show'));
+      tree.querySelectorAll('.dt-choice').forEach(c => c.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById(id).classList.add('show');
+    }
+  </script>
 </body>
 </html>

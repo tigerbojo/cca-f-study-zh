@@ -40,122 +40,222 @@
   <section class="task-section">
     <div class="container">
 
+      <!-- ==================== TASK 4.1 ==================== -->
+      <div class="section-divider">Task 4.1</div>
+      <div class="task-card">
+        <h3>Task 4.1: 精確標準 vs 模糊指令 — 為什麼「保守一點」沒有用？</h3>
+      </div>
+
+      <div class="compare-card">
+        <div class="compare-grid">
+          <div class="compare-side bad">
+            <div class="compare-label">✗ 模糊指令（無效）</div>
+<pre>"Review this code and only report
+ high-confidence findings.
+ Be conservative."
+
+// 結果：Claude 依然報一堆 false positive
+// 因為「高信心」「保守」沒有具體標準
+// Claude 對自己的每個 finding 都有信心</pre>
+          </div>
+          <div class="compare-side good">
+            <div class="compare-label">✓ 明確標準（有效）</div>
+<pre>"只報告以下類型的問題：
+ - Bug：邏輯錯誤、null reference、off-by-one
+ - 安全：SQL injection、XSS、auth bypass
+
+ 跳過：
+ - 風格偏好（命名、排版）
+ - 已知的 local pattern（團隊慣用寫法）
+ - 只出現在測試中的問題"
+
+// 結果：false positive 降 70%
+// 因為 Claude 有清楚的判斷邊界</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TASK 4.2 ==================== -->
+      <div class="section-divider">Task 4.2</div>
+      <div class="task-card">
+        <h3>Task 4.2: Few-shot 範例 — 最強大的 Prompt 技巧</h3>
+        <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1rem;">
+          當詳細指令仍產出不一致結果時，2-4 個精準的 few-shot 範例通常一次解決。
+        </p>
+      </div>
+
+      <div class="code-example open">
+        <div class="code-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="code-title"><span class="code-lang">Prompt</span> Few-shot 範例：Code Review Finding 格式</span>
+          <span class="code-toggle">▼</span>
+        </div>
+        <div class="code-body">
+<pre><span class="hl-cm"># 以下是 review finding 的範例格式：</span>
+
+<span class="hl-cm">## 範例 1（應該報告 — Bug）</span>
+<span class="hl-key">location</span>: src/cart.ts:42
+<span class="hl-key">issue</span>: calculateTotal() 沒有處理空購物車，
+       items.reduce() 在空陣列上回傳 undefined
+<span class="hl-key">severity</span>: HIGH
+<span class="hl-key">fix</span>: 加上 items.length === 0 的 early return
+
+<span class="hl-cm">## 範例 2（不應該報告 — 風格偏好）</span>
+<span class="hl-key">location</span>: src/cart.ts:15
+<span class="hl-key">issue</span>: 變數名 "x" 不夠描述性
+<span class="hl-key">decision</span>: <span class="hl-str">SKIP — 風格偏好，不是 bug</span>
+
+<span class="hl-cm">## 範例 3（應該報告 — 安全）</span>
+<span class="hl-key">location</span>: src/api/users.ts:78
+<span class="hl-key">issue</span>: SQL query 直接用字串串接 user input
+       → SQL injection 風險
+<span class="hl-key">severity</span>: CRITICAL
+<span class="hl-key">fix</span>: 改用 parameterized query
+
+<span class="hl-cm"># Few-shot 的力量：</span>
+<span class="hl-cm"># - 展示了「格式」（location/issue/severity/fix）</span>
+<span class="hl-cm"># - 展示了「判斷」（什麼該報告、什麼該跳過）</span>
+<span class="hl-cm"># - Claude 會泛化到新的 pattern，不只 match 範例</span></pre>
+        </div>
+      </div>
+
+      <!-- ==================== TASK 4.3 ==================== -->
+      <div class="section-divider">Task 4.3</div>
+      <div class="task-card">
+        <h3>Task 4.3: tool_use + JSON Schema — 保證結構化輸出</h3>
+        <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1rem;">
+          用 <code>tool_use</code> 搭配 JSON Schema 是產出結構化資料最可靠的方式 — 100% 消除 JSON 語法錯誤。
+        </p>
+      </div>
+
+      <div class="code-example">
+        <div class="code-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="code-title"><span class="code-lang">Python</span> 用 tool_use 強制結構化輸出</span>
+          <span class="code-toggle">▼</span>
+        </div>
+        <div class="code-body">
+<pre><span class="hl-cm"># 定義 extraction tool 的 JSON Schema</span>
+extract_invoice = {
+    <span class="hl-key">"name"</span>: <span class="hl-str">"extract_invoice"</span>,
+    <span class="hl-key">"description"</span>: <span class="hl-str">"從發票文件抽取結構化資料"</span>,
+    <span class="hl-key">"input_schema"</span>: {
+        <span class="hl-key">"type"</span>: <span class="hl-str">"object"</span>,
+        <span class="hl-key">"required"</span>: [<span class="hl-str">"vendor"</span>, <span class="hl-str">"total"</span>],
+        <span class="hl-key">"properties"</span>: {
+            <span class="hl-key">"vendor"</span>: { <span class="hl-key">"type"</span>: <span class="hl-str">"string"</span> },
+            <span class="hl-key">"total"</span>: { <span class="hl-key">"type"</span>: <span class="hl-str">"number"</span> },
+            <span class="hl-cm">// ✓ nullable — 文件中可能沒有這項</span>
+            <span class="hl-cm">// 避免 Claude 為了滿足 required 而捏造值</span>
+            <span class="hl-key">"po_number"</span>: { <span class="hl-key">"type"</span>: [<span class="hl-str">"string"</span>, <span class="hl-str">"null"</span>] },
+            <span class="hl-cm">// ✓ enum + "other" 模式</span>
+            <span class="hl-key">"category"</span>: {
+                <span class="hl-key">"enum"</span>: [<span class="hl-str">"office"</span>, <span class="hl-str">"travel"</span>, <span class="hl-str">"software"</span>, <span class="hl-str">"other"</span>]
+            },
+            <span class="hl-key">"category_detail"</span>: { <span class="hl-key">"type"</span>: [<span class="hl-str">"string"</span>, <span class="hl-str">"null"</span>] }
+        }
+    }
+}
+
+<span class="hl-cm"># 強制呼叫這個工具</span>
+response = client.messages.create(
+    model=<span class="hl-str">"claude-sonnet-4-5-20250514"</span>,
+    tools=[extract_invoice],
+    <span class="hl-key">tool_choice</span>={<span class="hl-key">"type"</span>: <span class="hl-str">"tool"</span>, <span class="hl-key">"name"</span>: <span class="hl-str">"extract_invoice"</span>},
+    messages=[{<span class="hl-key">"role"</span>: <span class="hl-str">"user"</span>, <span class="hl-key">"content"</span>: invoice_text}]
+)</pre>
+        </div>
+      </div>
+
       <div class="key-concept">
-        <strong>核心考點：</strong>精確標準勝過模糊指令、Few-shot 範例的強大作用、<code>tool_use</code> + JSON Schema 保證結構化輸出、Message Batches API 的 50% 省成本但 24 小時延遲、Self-review 的限制。
+        <strong>tool_use 消除語法錯誤，但不防語意錯誤。</strong><br>
+        JSON 格式保證正確 ✓ ｜但 total 可能不等於 line items 的加總 ✗<br>
+        → 語意驗證仍需要額外的 validation + retry loop
       </div>
 
+      <!-- ==================== TASK 4.5 ==================== -->
+      <div class="section-divider">Task 4.5</div>
       <div class="task-card">
-        <h3>Task 4.1: 用明確標準設計 Prompt 以提升精確度、減少 False Positive</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li>明確標準優於模糊指令：「只在宣稱行為和實際程式碼行為矛盾時標記」vs「檢查 comment 是否準確」</li>
-          <li>「保守一點」或「只報告高信心」這類泛用指令<strong>無法</strong>改善精確度</li>
-          <li>高 false positive 率會摧毀開發者對整個系統的信任</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>寫明確的 review 標準：哪些問題要報告（bug、安全）vs 跳過（小風格、local pattern）</li>
-          <li>暫時停用高 false positive 的類別來恢復信任，同時改進該類別的 prompt</li>
-          <li>用具體程式碼範例定義每個嚴重度等級</li>
-        </ul>
+        <h3>Task 4.5: Batch API vs 即時 API — 什麼時候該用哪個？</h3>
       </div>
 
+      <div class="decision-tree" id="dt-batch">
+        <div class="dt-node">
+          <div class="dt-question">你的工作流需要多快拿到結果？</div>
+          <div class="dt-choices">
+            <button class="dt-choice" onclick="showDtResult('batch-1', this)">開發者在等，不能 merge</button>
+            <button class="dt-choice" onclick="showDtResult('batch-2', this)">明天早上看到就好</button>
+            <button class="dt-choice" onclick="showDtResult('batch-3', this)">每週一次的報告</button>
+          </div>
+        </div>
+        <div class="dt-result" id="batch-1">
+          <strong>→ Synchronous API（即時呼叫）。</strong><br>
+          Pre-merge check、PR review — 開發者在等結果。<br>
+          Batch API 最長要 24 小時，完全不適合阻塞式工作流。
+        </div>
+        <div class="dt-result" id="batch-2">
+          <strong>→ Message Batches API。省 50% 成本！</strong><br>
+          隔夜跑的技術債務報告、nightly test generation。<br>
+          用 <code>custom_id</code> 關聯 request/response。失敗的用 <code>custom_id</code> 只重送失敗的文件。
+        </div>
+        <div class="dt-result" id="batch-3">
+          <strong>→ Message Batches API + 提前提交。</strong><br>
+          每週稽核、月報。計算提交時間：如果 SLA 是 30 小時，每 4 小時提交一次（24hr batch + 6hr 緩衝）。<br>
+          <strong>提示：</strong>先在小樣本上精煉 prompt，再 batch 處理大量。
+        </div>
+      </div>
+
+      <!-- ==================== TASK 4.6 ==================== -->
+      <div class="section-divider">Task 4.6</div>
       <div class="task-card">
-        <h3>Task 4.2: 用 Few-shot Prompting 提升輸出一致性與品質</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li>Few-shot 範例是達到一致格式化、可行動輸出的<strong>最有效技巧</strong></li>
-          <li>Few-shot 範例能展示模糊案例的處理方式（如工具選擇、測試覆蓋缺口）</li>
-          <li>Few-shot 讓模型<strong>泛化判斷</strong>到新模式，而非只匹配預設案例</li>
-          <li>有效減少抽取任務中的幻覺（處理非正式量測值、多樣文件結構）</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>建立 2-4 個針對模糊情境的 few-shot 範例，展示選擇理由</li>
-          <li>包含展示特定輸出格式（位置、問題、嚴重度、建議修正）的範例</li>
-          <li>提供區分可接受 pattern vs 真正問題的範例，減少 false positive 同時保持泛化能力</li>
-          <li>展示不同文件結構的正確抽取方式（inline citation vs 參考書目）</li>
-        </ul>
+        <h3>Task 4.6: 為什麼讓 Claude 自己 Review 自己寫的 Code 效果差？</h3>
       </div>
 
-      <div class="task-card">
-        <h3>Task 4.3: 用 tool_use 和 JSON Schema 強制結構化輸出</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li><code>tool_use</code> + JSON Schema = <strong>最可靠</strong>的結構化輸出方法，消除 JSON 語法錯誤</li>
-          <li><code>tool_choice</code> 差異：
-            <br>• <code>"auto"</code>：模型可能回傳文字而非呼叫工具
-            <br>• <code>"any"</code>：必須呼叫工具，但可選哪個
-            <br>• 強制指定：必須呼叫特定工具
-          </li>
-          <li>Strict JSON Schema 消除<strong>語法錯誤</strong>，但<strong>不防止語意錯誤</strong>（如明細不等於總計、值放錯欄位）</li>
-          <li>Schema 設計：required vs optional、enum + "other" + detail string pattern</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>定義 extraction tool 的 JSON Schema 為 input parameter，從 <code>tool_use</code> response 抽取結構化資料</li>
-          <li><code>tool_choice: "any"</code>：多個 schema 且文件類型未知時保證結構化輸出</li>
-          <li>強制特定工具：<code>tool_choice: {"type": "tool", "name": "extract_metadata"}</code></li>
-          <li>來源文件可能沒有的資訊 → schema field 設為 optional（nullable），防止模型捏造值</li>
-          <li>模糊案例加 <code>"unclear"</code> enum 值、可擴展分類加 <code>"other"</code> + detail field</li>
-        </ul>
+      <div class="compare-card">
+        <div class="compare-grid">
+          <div class="compare-side bad">
+            <div class="compare-label">✗ Self-review（同一 session）</div>
+<pre>User: "寫一個認證模組"
+Claude: [產出 code...]
+
+User: "現在 review 你剛寫的 code"
+Claude: "看起來很好，設計合理..."
+
+// 問題：Claude 保留了寫 code 時的
+// 推理 context，不容易質疑自己的決策
+// → 漏掉微妙的 bug</pre>
+          </div>
+          <div class="compare-side good">
+            <div class="compare-label">✓ 獨立 instance review</div>
+<pre>Session 1 (Generator):
+  "寫一個認證模組" → [產出 code]
+
+Session 2 (Reviewer): ← 全新 instance
+  "Review 這段 code: [code]"
+  "這裡有潛在的 timing attack..."
+
+// 獨立 instance 沒有 generator 的
+// 推理 context → 更客觀
+// 大型 PR → per-file pass + integration pass</pre>
+          </div>
+        </div>
       </div>
 
-      <div class="key-concept">
-        <strong>考試重點：</strong><code>tool_use</code> 消除的是<strong>語法錯誤</strong>（JSON 格式壞掉），但<strong>語意錯誤</strong>（值放錯欄位、數字不對）仍需額外驗證。required field 會迫使模型捏造不存在的資訊 → 用 nullable/optional。
-      </div>
-
-      <div class="task-card">
-        <h3>Task 4.4: 實作驗證、重試和回饋迴圈以提升抽取品質</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li>Retry-with-error-feedback：在重試時附上具體驗證錯誤引導模型修正</li>
-          <li>重試的<strong>極限</strong>：當資訊根本不在來源文件中時，重試無效</li>
-          <li>回饋迴圈設計：追蹤哪些 code construct 觸發 finding（<code>detected_pattern</code> field）</li>
-          <li>語意驗證錯誤 vs schema 語法錯誤（後者已被 tool_use 消除）</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>實作 follow-up request：包含原文件 + 失敗的抽取結果 + 具體驗證錯誤</li>
-          <li>判斷重試是否有效：資訊不在文件中 → 無效；格式/結構錯誤 → 有效</li>
-          <li>加 <code>detected_pattern</code> field 分析開發者 dismiss finding 的模式</li>
-          <li>自我修正驗證：抽取 "calculated_total" 和 "stated_total" 比對差異</li>
-        </ul>
-      </div>
-
-      <div class="task-card">
-        <h3>Task 4.5: 設計高效的批次處理策略</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li><strong>Message Batches API</strong>：50% 成本節省、最長 24 小時處理、無延遲保證 SLA</li>
-          <li>適合非阻塞、延遲容忍的工作（隔夜報告、每週稽核、夜間測試生成）</li>
-          <li><strong>不適合</strong>阻塞式工作流（pre-merge check）</li>
-          <li>Batch API 不支援單一請求內的多輪 tool calling</li>
-          <li><code>custom_id</code> field 用於關聯 request/response</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>阻塞式 pre-merge check → synchronous API；隔夜分析 → batch API</li>
-          <li>根據 SLA 計算 batch 提交頻率（如 4 小時窗口保證 30 小時 SLA）</li>
-          <li>處理 batch 失敗：用 <code>custom_id</code> 只重新提交失敗的文件（如 chunking 超出 context 的文件）</li>
-          <li>先在樣本集上精煉 prompt，再 batch 處理大量，提升首次成功率</li>
-        </ul>
-      </div>
-
-      <div class="task-card">
-        <h3>Task 4.6: 設計多 Instance 和多 Pass Review 架構</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li><strong>Self-review 的限制：</strong>模型保留了生成時的推理 context，不容易質疑自己的決策</li>
-          <li><strong>獨立 review instance</strong>（沒有先前推理 context）比 self-review 指令或 extended thinking 更能抓到微妙問題</li>
-          <li>Multi-pass review：拆成 per-file local analysis + cross-file integration pass → 避免注意力稀釋和矛盾 finding</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>用第二個獨立 Claude instance review 產生的程式碼（不帶 generator 的推理 context）</li>
-          <li>大型多檔 review → per-file pass（local issue）+ integration pass（cross-file data flow）</li>
-          <li>驗證 pass：模型在每個 finding 旁自報信心，做校準式 review routing</li>
-        </ul>
+      <div class="think-card">
+        <div class="think-scenario">
+          <h4>情境思考：14 檔案的 PR review 出了什麼問題？</h4>
+          <p>你的單次 review 分析 14 個檔案，結果：有些檔案回饋詳細、有些很表面、明顯 bug 被遺漏、對相同 pattern 給出矛盾回饋。怎麼修？</p>
+        </div>
+        <div class="think-options">
+          <button class="think-opt" data-correct="true" onclick="handleThink(this)">A) 拆成 per-file local analysis + cross-file integration pass</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">B) 換更大 context window 的模型</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">C) 跑三次取共識</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">D) 要求開發者拆小 PR</button>
+        </div>
+        <div class="think-reveal">
+          <strong>A — 拆成聚焦的 pass。</strong>根因是<strong>注意力稀釋</strong>：同時處理太多檔案，每個都不夠深入。<br><br>
+          B 錯：更大 context ≠ 更好的注意力品質。<br>
+          C 錯：共識機制反而壓抑間歇性抓到的真正 bug。<br>
+          D：轉嫁負擔給開發者，沒有改善系統。
+        </div>
       </div>
 
     </div>
@@ -171,5 +271,19 @@
   </footer>
 
   <script src="js/main.js"></script>
+  <script>
+    function handleThink(btn) {
+      const card = btn.closest('.think-card');
+      card.querySelectorAll('.think-opt').forEach(o => { o.disabled = true; o.classList.add(o.dataset.correct === 'true' ? 'correct' : 'wrong'); });
+      card.querySelector('.think-reveal').classList.add('show');
+    }
+    function showDtResult(id, btn) {
+      const tree = btn.closest('.decision-tree');
+      tree.querySelectorAll('.dt-result').forEach(r => r.classList.remove('show'));
+      tree.querySelectorAll('.dt-choice').forEach(c => c.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById(id).classList.add('show');
+    }
+  </script>
 </body>
 </html>

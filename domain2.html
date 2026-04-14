@@ -40,103 +40,240 @@
   <section class="task-section">
     <div class="container">
 
-      <div class="key-concept">
-        <strong>核心考點：</strong>Tool description 是 LLM 選擇工具的主要依據。模糊或重疊的描述會導致 misrouting。MCP 的 <code>isError</code> flag、結構化錯誤回應、以及工具分配策略是本章重點。
-      </div>
-
+      <!-- ==================== TASK 2.1 ==================== -->
+      <div class="section-divider">Task 2.1</div>
       <div class="task-card">
-        <h3>Task 2.1: 設計有效的 Tool 介面 — 清晰描述與邊界</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li>Tool descriptions 是 LLM 選擇工具的<strong>主要機制</strong>；描述太簡略 → 選擇不可靠</li>
-          <li>描述應包含：輸入格式、範例查詢、邊界案例、何時用它 vs 類似工具</li>
-          <li>模糊/重疊描述會導致 misrouting（如 <code>analyze_content</code> vs <code>analyze_document</code> 描述幾乎一樣）</li>
-          <li>System prompt 中的關鍵字敏感指令可能覆蓋好的 tool description</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>寫出清楚區分每個工具的描述：用途、預期輸入/輸出、何時用 vs 類似替代</li>
-          <li>重命名工具消除功能重疊（如 <code>analyze_content</code> → <code>extract_web_results</code>）</li>
-          <li>拆分通用工具為特定用途工具（如 <code>analyze_document</code> → <code>extract_data_points</code> + <code>summarize_content</code> + <code>verify_claim_against_source</code>）</li>
-        </ul>
+        <h3>Task 2.1: Tool Description 怎麼寫才不會讓 Claude 選錯工具？</h3>
+        <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1rem;">
+          Tool description 是 LLM 選擇工具的<strong>主要依據</strong>。寫不好 → Claude 會搞混相似的工具。
+        </p>
       </div>
 
+      <!-- Before/After: Tool Descriptions -->
+      <div class="compare-card">
+        <div class="compare-grid">
+          <div class="compare-side bad">
+            <div class="compare-label">✗ 爛的 Tool Description</div>
+<pre>{
+  "name": "get_customer",
+  "description": "取得客戶資訊"
+}
+
+{
+  "name": "lookup_order",
+  "description": "取得訂單詳情"
+}
+
+// 問題：描述幾乎一樣
+// Claude 看到 "查我的訂單 #123"
+// 不確定該用哪個 → 60% 選錯</pre>
+          </div>
+          <div class="compare-side good">
+            <div class="compare-label">✓ 好的 Tool Description</div>
+<pre>{
+  "name": "get_customer",
+  "description": "用 email 或電話
+    查詢客戶帳戶資訊。回傳
+    customer_id、姓名、會員等級。
+    ⚠️ 不接受訂單號碼。
+    用途：身份驗證、帳戶查詢"
+}
+
+{
+  "name": "lookup_order",
+  "description": "用訂單號碼（#開頭）
+    或 customer_id 查詢訂單。
+    回傳狀態、金額、配送資訊。
+    用途：訂單追蹤、退貨查詢"
+}</pre>
+            <div class="compare-annotation">
+              好的描述包含：<strong>接受什麼輸入</strong>、<strong>回傳什麼</strong>、<strong>何時用它</strong>、<strong>何時不用它</strong>。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Think Card -->
+      <div class="think-card">
+        <div class="think-scenario">
+          <h4>情境思考：工具選擇出錯，第一步做什麼？</h4>
+          <p>你有 <code>analyze_content</code> 和 <code>analyze_document</code> 兩個工具，Claude 經常選錯。你的第一步是？</p>
+        </div>
+        <div class="think-options">
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">A) 加 5-8 個 few-shot 範例到 system prompt</button>
+          <button class="think-opt" data-correct="true" onclick="handleThink(this)">B) 改善兩個工具的 description，清楚區分各自用途</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">C) 建一個 routing layer 根據關鍵字預選工具</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">D) 合併成一個 analyze_all 工具</button>
+        </div>
+        <div class="think-reveal">
+          <strong>B — 改 description 是第一步。</strong>低成本、高效果、直接解決根因。<br><br>
+          更好的做法：重命名工具消除功能重疊，例如 <code>analyze_content</code> → <code>extract_web_results</code>。或者拆成更專精的工具：<code>extract_data_points</code>、<code>summarize_content</code>、<code>verify_claim_against_source</code>。
+        </div>
+      </div>
+
+      <!-- ==================== TASK 2.2 ==================== -->
+      <div class="section-divider">Task 2.2</div>
       <div class="task-card">
-        <h3>Task 2.2: 實作 MCP 工具的結構化錯誤回應</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li>MCP <code>isError</code> flag：向 agent 傳達工具失敗</li>
-          <li>錯誤分類：<strong>暫時性</strong>（timeout）、<strong>驗證</strong>（無效輸入）、<strong>業務</strong>（政策違規）、<strong>權限</strong></li>
-          <li>統一的泛用錯誤（"Operation failed"）阻止 agent 做出適當的恢復決策</li>
-          <li>可重試 vs 不可重試錯誤：結構化 metadata 防止浪費重試</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>回傳結構化錯誤 metadata：<code>errorCategory</code>、<code>isRetryable</code> boolean、人類可讀描述</li>
-          <li>業務規則違規：<code>retriable: false</code> + 客戶友善說明</li>
-          <li>Subagent 內部處理暫時性錯誤，只傳播無法本地解決的錯誤（附帶部分結果和嘗試記錄）</li>
-          <li>區分<strong>存取失敗</strong>（需重試決策）vs <strong>合法空結果</strong>（查詢成功但沒有匹配）</li>
-        </ul>
+        <h3>Task 2.2: MCP 工具的結構化錯誤回應</h3>
+        <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1rem;">
+          泛用的 "Operation failed" 讓 agent 無法判斷該重試、放棄、還是換方案。
+        </p>
       </div>
 
+      <!-- Before/After: Error Responses -->
+      <div class="compare-card">
+        <div class="compare-grid">
+          <div class="compare-side bad">
+            <div class="compare-label">✗ 泛用錯誤</div>
+<pre>return {
+  "isError": true,
+  "content": "Operation failed"
+}
+
+// Agent 收到這個能做什麼？
+// 不知道是暫時性還是永久性
+// 不知道要不要重試
+// 不知道有沒有部分結果</pre>
+          </div>
+          <div class="compare-side good">
+            <div class="compare-label">✓ 結構化錯誤</div>
+<pre>return {
+  "isError": true,
+  "content": {
+    "errorCategory": "transient",
+    "isRetryable": true,
+    "description": "API timeout after 30s",
+    "partialResults": [...3 筆已取得],
+    "suggestion": "用更窄的日期範圍重試"
+  }
+}
+
+// Agent 知道：可以重試、有部分結果、
+// 該怎麼修改查詢</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-example">
+        <div class="code-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="code-title"><span class="code-lang">Python</span> 四種錯誤類型範例</span>
+          <span class="code-toggle">▼</span>
+        </div>
+        <div class="code-body">
+<pre><span class="hl-cm"># 暫時性錯誤 → 可重試</span>
+{ <span class="hl-key">"errorCategory"</span>: <span class="hl-str">"transient"</span>, <span class="hl-key">"isRetryable"</span>: <span class="hl-num">True</span>,
+  <span class="hl-key">"description"</span>: <span class="hl-str">"Database connection timeout"</span> }
+
+<span class="hl-cm"># 驗證錯誤 → 修正輸入後可重試</span>
+{ <span class="hl-key">"errorCategory"</span>: <span class="hl-str">"validation"</span>, <span class="hl-key">"isRetryable"</span>: <span class="hl-num">True</span>,
+  <span class="hl-key">"description"</span>: <span class="hl-str">"日期格式錯誤，預期 YYYY-MM-DD"</span> }
+
+<span class="hl-cm"># 業務錯誤 → 不可重試，需要告訴用戶</span>
+{ <span class="hl-key">"errorCategory"</span>: <span class="hl-str">"business"</span>, <span class="hl-key">"isRetryable"</span>: <span class="hl-num">False</span>,
+  <span class="hl-key">"description"</span>: <span class="hl-str">"退款超過 $500 上限，需人工審核"</span>,
+  <span class="hl-key">"customerMessage"</span>: <span class="hl-str">"此金額需要主管核准，已轉交處理"</span> }
+
+<span class="hl-cm"># 權限錯誤 → 不可重試</span>
+{ <span class="hl-key">"errorCategory"</span>: <span class="hl-str">"permission"</span>, <span class="hl-key">"isRetryable"</span>: <span class="hl-num">False</span>,
+  <span class="hl-key">"description"</span>: <span class="hl-str">"此 agent 無權存取財務資料"</span> }
+
+<span class="hl-cm"># ⚠️ 重要區分：</span>
+<span class="hl-cm"># 「存取失敗」（timeout）≠「合法空結果」（查詢成功但沒匹配）</span>
+<span class="hl-cm"># 空結果不是錯誤！不要設 isError: true</span></pre>
+        </div>
+      </div>
+
+      <!-- ==================== TASK 2.3 ==================== -->
+      <div class="section-divider">Task 2.3</div>
       <div class="task-card">
-        <h3>Task 2.3: 適當分配工具給各 Agent 並設定 tool_choice</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li>給 agent 太多工具（如 18 個而非 4-5 個）會<strong>降低工具選擇可靠性</strong></li>
-          <li>擁有職責外工具的 agent 傾向誤用它們（如 synthesis agent 嘗試 web search）</li>
-          <li>Scoped tool access：只給 agent 其角色需要的工具</li>
-          <li><code>tool_choice</code> 選項：<code>"auto"</code>、<code>"any"</code>、強制指定工具</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>限制每個 subagent 只有其角色相關的工具</li>
-          <li>用受限替代工具取代通用工具（如 <code>fetch_url</code> → <code>load_document</code>）</li>
-          <li>為高頻需求提供 scoped 跨角色工具（如 synthesis agent 的 <code>verify_fact</code>）</li>
-          <li><code>tool_choice</code> 強制選擇：確保特定工具先被呼叫（如強制 <code>extract_metadata</code>）</li>
-          <li><code>tool_choice: "any"</code>：保證模型呼叫工具而非回傳對話文字</li>
-        </ul>
+        <h3>Task 2.3: 工具分配策略 — 少即是多</h3>
+        <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1rem;">
+          給 agent 太多工具（18 個）反而降低選擇可靠性。每個 agent 只給它角色需要的 4-5 個。
+        </p>
       </div>
 
-      <div class="key-concept">
-        <strong>考試陷阱：</strong>當 agent 經常選錯工具時，「第一步」通常是<strong>改善 tool description</strong>（低成本高效果），而非加 few-shot 範例（增加 token overhead）或建 routing layer（過度工程化）。
+      <!-- Decision Tree: tool_choice -->
+      <div class="decision-tree" id="dt-tool-choice">
+        <div class="dt-node">
+          <div class="dt-question">你希望 Claude 怎麼使用工具？</div>
+          <div class="dt-choices">
+            <button class="dt-choice" onclick="showDtResult('tc-1', this)">讓 Claude 自己決定要不要用</button>
+            <button class="dt-choice" onclick="showDtResult('tc-2', this)">必須用工具，但可以選哪個</button>
+            <button class="dt-choice" onclick="showDtResult('tc-3', this)">必須用特定的某個工具</button>
+          </div>
+        </div>
+        <div class="dt-result" id="tc-1">
+          <strong>→ <code>tool_choice: "auto"</code></strong>（預設值）<br>
+          Claude 可以選擇用工具或直接回覆文字。適合一般對話場景。<br>
+          <strong>風險：</strong>Claude 可能跳過工具直接回答，造成回覆不準確。
+        </div>
+        <div class="dt-result" id="tc-2">
+          <strong>→ <code>tool_choice: "any"</code></strong><br>
+          保證 Claude 一定會呼叫某個工具，但由它選擇哪一個。<br>
+          <strong>適合：</strong>多個 extraction schema 且文件類型未知時，保證結構化輸出。
+        </div>
+        <div class="dt-result" id="tc-3">
+          <strong>→ <code>tool_choice: {"type": "tool", "name": "extract_metadata"}</code></strong><br>
+          強制呼叫特定工具。適合流程中必須先跑某步驟的場景。<br>
+          <strong>適合：</strong>必須先跑 <code>extract_metadata</code> 再跑 enrichment 的 pipeline。
+        </div>
       </div>
 
+      <!-- ==================== TASK 2.4 ==================== -->
+      <div class="section-divider">Task 2.4</div>
       <div class="task-card">
-        <h3>Task 2.4: 將 MCP Server 整合到 Claude Code 和 Agent 工作流</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li>MCP Server scope：<strong>專案級</strong> <code>.mcp.json</code>（團隊共享）vs <strong>用戶級</strong> <code>~/.claude.json</code>（個人）</li>
-          <li><code>.mcp.json</code> 中的環境變數展開（如 <code>${GITHUB_TOKEN}</code>）— 不用 commit 密鑰</li>
-          <li>所有設定的 MCP server 在連線時被發現，工具同時可用</li>
-          <li>MCP resources：暴露內容目錄（issue 摘要、文件層級、DB schema）減少探索性 tool call</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>在 <code>.mcp.json</code>（專案級）設定共享 MCP server + 環境變數展開</li>
-          <li>在 <code>~/.claude.json</code>（用戶級）設定個人/實驗性 MCP server</li>
-          <li>增強 MCP tool description，防止 agent 偏好內建工具（如 Grep）而忽略更強大的 MCP 工具</li>
-          <li>優先用現有社群 MCP server（如 Jira），只在團隊特殊需求時才建自訂 server</li>
-          <li>將內容目錄暴露為 MCP resources，讓 agent 知道有哪些資料可用</li>
-        </ul>
+        <h3>Task 2.4: MCP Server 設定 — 專案級 vs 用戶級</h3>
       </div>
 
+      <!-- SVG: MCP Scoping -->
+      <div class="flow-diagram">
+        <svg viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="max-width: 600px;">
+          <g class="flow-step">
+            <rect x="20" y="20" width="260" height="160" rx="10" fill="#1c1c20" stroke="#06b6d4" stroke-width="2"/>
+            <text x="150" y="48" text-anchor="middle" fill="#06b6d4" font-size="13" font-weight="700">專案級 .mcp.json</text>
+            <text x="150" y="70" text-anchor="middle" fill="#a1a1aa" font-size="10">✓ 進 version control</text>
+            <text x="150" y="88" text-anchor="middle" fill="#a1a1aa" font-size="10">✓ 團隊共享</text>
+            <text x="150" y="106" text-anchor="middle" fill="#a1a1aa" font-size="10">✓ 環境變數展開 ${GITHUB_TOKEN}</text>
+            <text x="150" y="130" text-anchor="middle" fill="#10b981" font-size="10" font-weight="600">適合：團隊共用的 Jira、GitHub MCP</text>
+            <text x="150" y="165" text-anchor="middle" fill="#52525b" font-size="9">clone repo 後自動可用</text>
+          </g>
+          <g class="flow-step">
+            <rect x="320" y="20" width="260" height="160" rx="10" fill="#1c1c20" stroke="#f59e0b" stroke-width="2"/>
+            <text x="450" y="48" text-anchor="middle" fill="#f59e0b" font-size="13" font-weight="700">用戶級 ~/.claude.json</text>
+            <text x="450" y="70" text-anchor="middle" fill="#a1a1aa" font-size="10">✗ 不進 version control</text>
+            <text x="450" y="88" text-anchor="middle" fill="#a1a1aa" font-size="10">✗ 只有自己能用</text>
+            <text x="450" y="106" text-anchor="middle" fill="#a1a1aa" font-size="10">✓ 不影響其他人</text>
+            <text x="450" y="130" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="600">適合：個人實驗、測試中的 MCP</text>
+            <text x="450" y="165" text-anchor="middle" fill="#52525b" font-size="9">兩邊設定的 MCP server 同時可用</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- ==================== TASK 2.5 ==================== -->
+      <div class="section-divider">Task 2.5</div>
       <div class="task-card">
-        <h3>Task 2.5: 有效選用內建工具（Read, Write, Edit, Bash, Grep, Glob）</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li><code>Grep</code>：內容搜尋（搜尋檔案內容中的 pattern，如函式名、錯誤訊息）</li>
-          <li><code>Glob</code>：檔案路徑模式匹配（依名稱或副檔名找檔案）</li>
-          <li><code>Read/Write</code>：完整檔案操作；<code>Edit</code>：用唯一文字匹配做精準修改</li>
-          <li>當 <code>Edit</code> 因非唯一文字失敗時，用 <code>Read</code> + <code>Write</code> 作為 fallback</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>搜尋程式碼內容 → <code>Grep</code>（找函式呼叫者、定位錯誤訊息）</li>
-          <li>找檔案 pattern → <code>Glob</code>（如 <code>**/*.test.tsx</code>）</li>
-          <li>漸進式理解 codebase：先 <code>Grep</code> 找進入點 → <code>Read</code> 追蹤 import → 而非一開始就讀所有檔案</li>
-          <li>追蹤跨 wrapper module 的函式使用：先找出所有 exported names → 再搜尋每個名稱</li>
-        </ul>
+        <h3>Task 2.5: 內建工具速查 — 什麼場景用什麼工具？</h3>
+      </div>
+
+      <div class="think-card">
+        <div class="think-scenario">
+          <h4>情境思考：你要在整個 codebase 中找出所有呼叫 processRefund() 的地方</h4>
+          <p>哪個工具最適合？</p>
+        </div>
+        <div class="think-options">
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">A) Glob — 找檔案名稱 pattern</button>
+          <button class="think-opt" data-correct="true" onclick="handleThink(this)">B) Grep — 搜尋檔案內容中的 pattern</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">C) Read — 讀取並搜尋每個檔案</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">D) Bash — 用 grep 指令搜尋</button>
+        </div>
+        <div class="think-reveal">
+          <strong>B — Grep。</strong>搜尋檔案<em>內容</em>中的 pattern 就用 Grep。<br><br>
+          <strong>速記：</strong><br>
+          <code>Grep</code> = 搜尋<strong>內容</strong>（函式名稱、錯誤訊息、import）<br>
+          <code>Glob</code> = 搜尋<strong>檔案名</strong>（<code>**/*.test.tsx</code>）<br>
+          <code>Read</code> = 讀完整檔案 / <code>Edit</code> = 精準修改<br>
+          <code>Bash</code> = 只用在系統指令，有專用工具時不用 Bash
+        </div>
       </div>
 
     </div>
@@ -152,5 +289,23 @@
   </footer>
 
   <script src="js/main.js"></script>
+  <script>
+    function handleThink(btn) {
+      const card = btn.closest('.think-card');
+      const reveal = card.querySelector('.think-reveal');
+      card.querySelectorAll('.think-opt').forEach(o => {
+        o.disabled = true;
+        o.classList.add(o.dataset.correct === 'true' ? 'correct' : 'wrong');
+      });
+      reveal.classList.add('show');
+    }
+    function showDtResult(id, btn) {
+      const tree = btn.closest('.decision-tree');
+      tree.querySelectorAll('.dt-result').forEach(r => r.classList.remove('show'));
+      tree.querySelectorAll('.dt-choice').forEach(c => c.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById(id).classList.add('show');
+    }
+  </script>
 </body>
 </html>
