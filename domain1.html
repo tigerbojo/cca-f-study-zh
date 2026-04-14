@@ -40,133 +40,437 @@
   <section class="task-section">
     <div class="container">
 
+      <!-- ==================== TASK 1.1 ==================== -->
+      <div class="section-divider">Task 1.1</div>
+
+      <div class="task-card">
+        <h3>Task 1.1: Agentic Loop — Claude 怎麼自主工作？</h3>
+        <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1rem;">
+          Agentic Loop 是 Claude 自主完成任務的核心機制。理解這個迴圈，就理解了整個 Agent 架構的基礎。
+        </p>
+      </div>
+
+      <!-- Flow Diagram: Agentic Loop -->
+      <div class="flow-diagram">
+        <svg viewBox="0 0 700 320" fill="none" xmlns="http://www.w3.org/2000/svg" style="max-width: 700px;">
+          <!-- Step 1: Send Request -->
+          <g class="flow-step">
+            <rect x="20" y="30" width="140" height="56" rx="8" fill="#1c1c20" stroke="#6366f1" stroke-width="2"/>
+            <text x="90" y="55" text-anchor="middle" fill="#e4e4e7" font-size="13" font-weight="600">1. 發送請求</text>
+            <text x="90" y="72" text-anchor="middle" fill="#a1a1aa" font-size="10">User message + tools</text>
+          </g>
+          <!-- Arrow -->
+          <g class="flow-step">
+            <line x1="160" y1="58" x2="195" y2="58" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
+          </g>
+          <!-- Step 2: Claude Responds -->
+          <g class="flow-step">
+            <rect x="195" y="30" width="140" height="56" rx="8" fill="#1c1c20" stroke="#6366f1" stroke-width="2"/>
+            <text x="265" y="55" text-anchor="middle" fill="#e4e4e7" font-size="13" font-weight="600">2. Claude 回應</text>
+            <text x="265" y="72" text-anchor="middle" fill="#a1a1aa" font-size="10">text + tool_use</text>
+          </g>
+          <!-- Arrow down to decision -->
+          <g class="flow-step">
+            <line x1="265" y1="86" x2="265" y2="120" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
+          </g>
+          <!-- Decision diamond -->
+          <g class="flow-step">
+            <polygon points="265,120 345,160 265,200 185,160" fill="#1c1c20" stroke="#f59e0b" stroke-width="2"/>
+            <text x="265" y="156" text-anchor="middle" fill="#f59e0b" font-size="11" font-weight="700">stop_reason?</text>
+            <text x="265" y="170" text-anchor="middle" fill="#f59e0b" font-size="10">檢查停止原因</text>
+          </g>
+          <!-- Left path: tool_use -> continue -->
+          <g class="flow-step">
+            <line x1="185" y1="160" x2="60" y2="160" stroke="#10b981" stroke-width="2"/>
+            <text x="120" y="152" text-anchor="middle" fill="#10b981" font-size="11" font-weight="600">"tool_use"</text>
+            <line x1="60" y1="160" x2="60" y2="240" stroke="#10b981" stroke-width="2"/>
+            <rect x="5" y="240" width="140" height="56" rx="8" fill="#1c1c20" stroke="#10b981" stroke-width="2"/>
+            <text x="75" y="262" text-anchor="middle" fill="#e4e4e7" font-size="12" font-weight="600">3. 執行工具</text>
+            <text x="75" y="279" text-anchor="middle" fill="#a1a1aa" font-size="10">跑 tool → 拿到結果</text>
+            <!-- Arrow back up -->
+            <line x1="145" y1="268" x2="400" y2="268" stroke="#10b981" stroke-width="2" stroke-dasharray="6 3"/>
+            <line x1="400" y1="268" x2="400" y2="58" stroke="#10b981" stroke-width="2" stroke-dasharray="6 3"/>
+            <line x1="400" y1="58" x2="335" y2="58" stroke="#10b981" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#arrowG)"/>
+            <rect x="410" y="140" width="120" height="40" rx="6" fill="rgba(16,185,129,0.1)" stroke="#10b981" stroke-width="1"/>
+            <text x="470" y="157" text-anchor="middle" fill="#10b981" font-size="10" font-weight="600">4. 結果加入</text>
+            <text x="470" y="170" text-anchor="middle" fill="#10b981" font-size="9">conversation history</text>
+          </g>
+          <!-- Right path: end_turn -> done -->
+          <g class="flow-step">
+            <line x1="345" y1="160" x2="490" y2="160" stroke="#ef4444" stroke-width="2"/>
+            <text x="420" y="152" text-anchor="middle" fill="#ef4444" font-size="11" font-weight="600">"end_turn"</text>
+            <rect x="490" y="132" width="140" height="56" rx="8" fill="#1c1c20" stroke="#ef4444" stroke-width="2"/>
+            <text x="560" y="155" text-anchor="middle" fill="#e4e4e7" font-size="12" font-weight="600">5. 結束迴圈</text>
+            <text x="560" y="172" text-anchor="middle" fill="#a1a1aa" font-size="10">回傳最終回應給用戶</text>
+          </g>
+          <!-- Arrow markers -->
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#6366f1"/>
+            </marker>
+            <marker id="arrowG" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+            </marker>
+          </defs>
+        </svg>
+        <p style="text-align:center; font-size: 0.78rem; color: var(--text-dim); margin-top: 0.75rem;">
+          綠色虛線 = 迴圈繼續（tool results 加入歷史後再送給 Claude）｜紅色 = 迴圈結束
+        </p>
+      </div>
+
+      <!-- Code Example: Agentic Loop -->
+      <div class="code-example" id="code-agentic-loop">
+        <div class="code-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="code-title"><span class="code-lang">Python</span> Agentic Loop 實作範例</span>
+          <span class="code-toggle">▼</span>
+        </div>
+        <div class="code-body">
+<pre><span class="hl-kw">import</span> anthropic
+
+client = anthropic.Anthropic()
+messages = [{ <span class="hl-key">"role"</span>: <span class="hl-str">"user"</span>, <span class="hl-key">"content"</span>: <span class="hl-str">"查詢客戶 #1234 的訂單狀態"</span> }]
+tools = [get_customer_tool, lookup_order_tool]  <span class="hl-cm"># MCP 工具定義</span>
+
+<span class="hl-cm"># === Agentic Loop ===</span>
+<span class="hl-kw">while True</span>:
+    response = client.messages.create(
+        model=<span class="hl-str">"claude-sonnet-4-5-20250514"</span>,
+        max_tokens=<span class="hl-num">1024</span>,
+        tools=tools,
+        messages=messages
+    )
+
+    <span class="hl-cm"># 關鍵判斷點：檢查 stop_reason</span>
+    <span class="hl-kw">if</span> response.stop_reason == <span class="hl-str">"end_turn"</span>:
+        <span class="hl-cm"># Claude 認為任務完成，跳出迴圈</span>
+        <span class="hl-fn">print</span>(response.content[<span class="hl-num">0</span>].text)
+        <span class="hl-kw">break</span>
+
+    <span class="hl-kw">if</span> response.stop_reason == <span class="hl-str">"tool_use"</span>:
+        <span class="hl-cm"># Claude 要求使用工具，執行並回傳結果</span>
+        tool_block = response.content[<span class="hl-num">-1</span>]  <span class="hl-cm"># tool_use block</span>
+        result = <span class="hl-fn">execute_tool</span>(tool_block.name, tool_block.input)
+
+        <span class="hl-cm"># 把 Claude 的回應和工具結果都加入歷史</span>
+        messages.append({ <span class="hl-key">"role"</span>: <span class="hl-str">"assistant"</span>, <span class="hl-key">"content"</span>: response.content })
+        messages.append({
+            <span class="hl-key">"role"</span>: <span class="hl-str">"user"</span>,
+            <span class="hl-key">"content"</span>: [{
+                <span class="hl-key">"type"</span>: <span class="hl-str">"tool_result"</span>,
+                <span class="hl-key">"tool_use_id"</span>: tool_block.id,
+                <span class="hl-key">"content"</span>: result
+            }]
+        })
+        <span class="hl-cm"># 迴圈繼續 → Claude 看到工具結果後決定下一步</span></pre>
+        </div>
+      </div>
+
+      <!-- Think Card: Anti-patterns -->
+      <div class="think-card">
+        <div class="think-scenario">
+          <h4>情境思考：你的 agentic loop 哪裡有問題？</h4>
+          <p>同事寫了一個 agentic loop，用以下方式判斷何時停止。哪個做法是<strong>正確的</strong>？</p>
+        </div>
+        <div class="think-options">
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">A) 如果 Claude 回應中包含「任務完成」這個文字就停止迴圈</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">B) 設定最多跑 5 次迭代，到了就停</button>
+          <button class="think-opt" data-correct="true" onclick="handleThink(this)">C) 檢查 response.stop_reason === "end_turn" 就停止</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">D) 如果 Claude 沒有回傳任何 tool_use block 就停止</button>
+        </div>
+        <div class="think-reveal">
+          <strong>C 是正確的。</strong><code>stop_reason</code> 是 API 層級的結構化信號，可靠度 100%。<br><br>
+          A 是<strong>反模式</strong>：解析自然語言文字來判斷終止，不可靠且 fragile。<br>
+          B 是<strong>反模式</strong>：任意迭代上限作為主要停止機制。（可以作為安全網，但不應是主要邏輯）<br>
+          D 有<strong>微妙問題</strong>：Claude 可能同時回傳 text + tool_use，檢查「沒有 tool_use block」不等於 <code>end_turn</code>。
+        </div>
+      </div>
+
+      <!-- ==================== TASK 1.2 ==================== -->
+      <div class="section-divider">Task 1.2</div>
+
+      <div class="task-card">
+        <h3>Task 1.2: Coordinator-Subagent 多 Agent 架構</h3>
+        <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1rem;">
+          當任務太複雜，一個 agent 搞不定時，用 Hub-and-spoke 架構：一個 Coordinator 指揮多個專責 Subagent。
+        </p>
+      </div>
+
+      <!-- Hub-and-spoke SVG -->
+      <div class="flow-diagram">
+        <svg viewBox="0 0 600 280" fill="none" xmlns="http://www.w3.org/2000/svg" style="max-width: 600px;">
+          <!-- Coordinator (center) -->
+          <g class="flow-step">
+            <rect x="200" y="100" width="200" height="70" rx="12" fill="#1c1c20" stroke="#6366f1" stroke-width="2.5"/>
+            <text x="300" y="130" text-anchor="middle" fill="#6366f1" font-size="14" font-weight="700">Coordinator</text>
+            <text x="300" y="150" text-anchor="middle" fill="#a1a1aa" font-size="10">任務分解 · 委派 · 聚合結果</text>
+          </g>
+          <!-- Subagent 1: Search -->
+          <g class="flow-step">
+            <line x1="230" y1="100" x2="80" y2="40" stroke="#10b981" stroke-width="1.5" stroke-dasharray="5 3"/>
+            <rect x="10" y="10" width="140" height="56" rx="8" fill="#1c1c20" stroke="#10b981" stroke-width="1.5"/>
+            <text x="80" y="33" text-anchor="middle" fill="#10b981" font-size="11" font-weight="600">Search Agent</text>
+            <text x="80" y="50" text-anchor="middle" fill="#a1a1aa" font-size="9">web_search 工具</text>
+          </g>
+          <!-- Subagent 2: Analysis -->
+          <g class="flow-step">
+            <line x1="370" y1="100" x2="520" y2="40" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="5 3"/>
+            <rect x="450" y="10" width="140" height="56" rx="8" fill="#1c1c20" stroke="#06b6d4" stroke-width="1.5"/>
+            <text x="520" y="33" text-anchor="middle" fill="#06b6d4" font-size="11" font-weight="600">Analysis Agent</text>
+            <text x="520" y="50" text-anchor="middle" fill="#a1a1aa" font-size="9">read_doc 工具</text>
+          </g>
+          <!-- Subagent 3: Synthesis -->
+          <g class="flow-step">
+            <line x1="230" y1="170" x2="80" y2="240" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5 3"/>
+            <rect x="10" y="215" width="140" height="56" rx="8" fill="#1c1c20" stroke="#f59e0b" stroke-width="1.5"/>
+            <text x="80" y="238" text-anchor="middle" fill="#f59e0b" font-size="11" font-weight="600">Synthesis Agent</text>
+            <text x="80" y="255" text-anchor="middle" fill="#a1a1aa" font-size="9">verify_fact 工具</text>
+          </g>
+          <!-- Subagent 4: Report -->
+          <g class="flow-step">
+            <line x1="370" y1="170" x2="520" y2="240" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5 3"/>
+            <rect x="450" y="215" width="140" height="56" rx="8" fill="#1c1c20" stroke="#ef4444" stroke-width="1.5"/>
+            <text x="520" y="238" text-anchor="middle" fill="#ef4444" font-size="11" font-weight="600">Report Agent</text>
+            <text x="520" y="255" text-anchor="middle" fill="#a1a1aa" font-size="9">write_report 工具</text>
+          </g>
+        </svg>
+        <p style="text-align:center; font-size: 0.78rem; color: var(--text-dim); margin-top: 0.5rem;">
+          Hub-and-spoke 架構：所有通訊都經過 Coordinator，Subagent 之間不直接溝通
+        </p>
+      </div>
+
       <div class="key-concept">
-        <strong>核心考點：</strong>這個 Domain 考的是你對 Agentic Loop 生命週期的理解 — 怎麼用 <code>stop_reason</code> 控制迴圈、怎麼設計 Coordinator-Subagent 多 Agent 系統、以及何時該用程式化強制（Hooks）而非 Prompt 指引。
+        <strong>重要：</strong>Subagent 有<strong>獨立 context</strong> — 不會自動繼承 Coordinator 的對話歷史。你必須在 prompt 中<strong>顯式傳入</strong>所有需要的資訊。
       </div>
 
-      <div class="task-card">
-        <h3>Task 1.1: 設計 Agentic Loop 進行自主任務執行</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li>Agentic Loop 生命週期：發送請求 → 檢查 <code>stop_reason</code>（<code>"tool_use"</code> vs <code>"end_turn"</code>）→ 執行工具 → 回傳結果</li>
-          <li>Tool results 被 append 到對話歷史，讓模型能推理下一步行動</li>
-          <li><strong>Model-driven 決策</strong>（Claude 自己決定用哪個工具）vs <strong>預設 decision tree</strong>（固定工具流程）</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>實作 agentic loop：<code>stop_reason === "tool_use"</code> 時繼續迴圈，<code>"end_turn"</code> 時終止</li>
-          <li>每次迭代間將 tool results 加入 conversation context</li>
-          <li><strong>避免反模式：</strong>不要用自然語言解析來判斷終止、不要用任意迭代上限作為主要終止機制、不要檢查 assistant text 來判斷完成</li>
-        </ul>
+      <!-- Think Card: Task Decomposition -->
+      <div class="think-card">
+        <div class="think-scenario">
+          <h4>情境思考：報告為什麼只涵蓋視覺藝術？</h4>
+          <p>你的多 Agent 系統研究「AI 對創意產業的影響」，最終報告只涵蓋視覺藝術（數位藝術、平面設計、攝影），完全遺漏音樂、寫作和電影。每個 subagent 都正確完成了被分配的任務。問題出在哪？</p>
+        </div>
+        <div class="think-options">
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">A) Synthesis agent 沒有偵測到覆蓋缺口</button>
+          <button class="think-opt" data-correct="true" onclick="handleThink(this)">B) Coordinator 的任務分解太狹窄</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">C) Search agent 查詢不夠全面</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">D) Analysis agent 過濾掉了非視覺來源</button>
+        </div>
+        <div class="think-reveal">
+          <strong>B 是根因。</strong>Coordinator 把「創意產業」只分解成視覺藝術的三個子任務。所有 subagent 都在<em>被分配的範圍內</em>正確工作了 — 問題在於它們被分配了什麼。<br><br>
+          這是 <strong>Task Decomposition 太狹窄</strong>的典型案例。修正方式：讓 Coordinator 的 prompt 指定研究目標和覆蓋標準，而非 step-by-step 子任務清單。
+        </div>
       </div>
 
-      <div class="task-card">
-        <h3>Task 1.2: 用 Coordinator-Subagent 模式編排多 Agent 系統</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li><strong>Hub-and-spoke 架構：</strong>Coordinator 管理所有 subagent 間的通訊、錯誤處理、資訊路由</li>
-          <li>Subagent 擁有<strong>獨立 context</strong> — 不會自動繼承 coordinator 的對話歷史</li>
-          <li>Coordinator 負責：任務分解、委派、結果聚合、動態選擇要呼叫哪個 subagent</li>
-          <li>過度狹窄的任務分解風險：可能導致研究主題覆蓋不完整</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>設計 coordinator 動態分析需求、選擇要呼叫哪些 subagent（不是永遠跑完整流程）</li>
-          <li>分配不同 subagent 負責不同子主題或來源類型，減少重複</li>
-          <li>迭代精煉迴圈：coordinator 評估 synthesis 品質 → 發現缺口 → 重新委派 search/analysis → 重新 synthesis</li>
-          <li>所有 subagent 通訊都經過 coordinator，確保可觀測性和一致的錯誤處理</li>
-        </ul>
-      </div>
+      <!-- ==================== TASK 1.3 ==================== -->
+      <div class="section-divider">Task 1.3</div>
 
       <div class="task-card">
-        <h3>Task 1.3: 設定 Subagent 的呼叫、Context 傳遞與 Spawn</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li><code>Task</code> 工具是 spawn subagent 的機制，coordinator 的 <code>allowedTools</code> 必須包含 <code>"Task"</code></li>
-          <li>Subagent context 必須<strong>顯式提供</strong>在 prompt 中 — 不會自動繼承、不會共享記憶</li>
-          <li><code>AgentDefinition</code> 設定：描述、system prompt、工具限制</li>
-          <li><code>fork_session</code>：從共享分析基線建立獨立分支，探索不同方案</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>在 subagent prompt 中直接包含前面 agent 的完整發現（例如把 web search 結果傳給 synthesis agent）</li>
-          <li>用結構化格式分離內容與 metadata（source URL、文件名、頁碼）保留出處</li>
-          <li><strong>平行 spawn：</strong>在 coordinator 的一個回應中發出多個 <code>Task</code> tool call（而非分成多個 turn）</li>
-          <li>Coordinator prompt 應指定研究目標和品質標準，而非 step-by-step 指令</li>
-        </ul>
+        <h3>Task 1.3: Subagent 的 Spawn 和 Context 傳遞</h3>
       </div>
 
-      <div class="task-card">
-        <h3>Task 1.4: 實作多步驟工作流的強制與交接模式</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li><strong>程式化強制</strong>（hooks、前置條件閘門）vs <strong>Prompt 指引</strong>：工作流順序保證</li>
-          <li>當需要確定性合規（如身份驗證後才能做金融操作），prompt 指令有非零失敗率</li>
-          <li>結構化交接協議：包含客戶詳情、根因分析、建議行動</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>實作程式化前置條件：在 <code>get_customer</code> 回傳已驗證 customer ID 前，封鎖 <code>process_refund</code></li>
-          <li>分解多面向客戶請求為獨立項目，平行調查後綜合統一回覆</li>
-          <li>編制結構化交接摘要（customer ID、根因、退款金額、建議動作）給人類 agent</li>
-        </ul>
+      <!-- Code Example: Spawning subagents -->
+      <div class="code-example" id="code-spawn">
+        <div class="code-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="code-title"><span class="code-lang">Python</span> 平行 Spawn 多個 Subagent</span>
+          <span class="code-toggle">▼</span>
+        </div>
+        <div class="code-body">
+<pre><span class="hl-cm"># Coordinator 在一個回應中發出多個 Task tool call → 平行執行</span>
+<span class="hl-cm"># 不是分成多個 turn 逐一發出（那樣是序列的）</span>
+
+<span class="hl-cm"># Agent 定義</span>
+search_agent = AgentDefinition(
+    name=<span class="hl-str">"search"</span>,
+    description=<span class="hl-str">"搜尋網路資料"</span>,
+    allowed_tools=[<span class="hl-str">"web_search"</span>],  <span class="hl-cm"># 只給它需要的工具</span>
+)
+
+analysis_agent = AgentDefinition(
+    name=<span class="hl-str">"analysis"</span>,
+    description=<span class="hl-str">"分析文件內容"</span>,
+    allowed_tools=[<span class="hl-str">"read_doc"</span>],   <span class="hl-cm"># 職責分離</span>
+)
+
+<span class="hl-cm"># Coordinator 的 allowedTools 必須包含 "Task"</span>
+coordinator = AgentDefinition(
+    name=<span class="hl-str">"coordinator"</span>,
+    allowed_tools=[<span class="hl-str">"Task"</span>],  <span class="hl-cm"># 沒有 Task 就無法 spawn subagent</span>
+    system_prompt=<span class="hl-str">"""
+    你是研究協調者。根據查詢需求：
+    1. 分析需要涵蓋哪些面向
+    2. 同時 spawn 多個 subagent 搜尋不同面向
+    3. 收集結果後評估覆蓋度
+    4. 有缺口就再 spawn 補充搜尋
+
+    重要：subagent 看不到你的對話歷史，
+    你必須在 prompt 中傳入所有需要的 context。
+    """</span>
+)</pre>
+        </div>
       </div>
 
       <div class="key-concept">
-        <strong>考試陷阱：</strong>當題目問「如何確保 agent 一定先驗證客戶身份」時，正確答案通常是<strong>程式化強制（Hook / 前置條件）</strong>，而不是「在 system prompt 加強指示」或「加 few-shot 範例」。Prompt 方法是 probabilistic，不夠可靠。
+        <strong>平行 spawn 的關鍵：</strong>在 Coordinator 的<strong>一個回應</strong>中發出多個 <code>Task</code> tool call，它們就會平行執行。如果分成多個 turn 逐一發出，就變成序列執行，浪費時間。
       </div>
 
-      <div class="task-card">
-        <h3>Task 1.5: 用 Agent SDK Hooks 攔截 Tool Call 和正規化資料</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li><code>PostToolUse</code> hook：攔截工具結果，在模型處理前做轉換</li>
-          <li>攔截外發 tool call 以強制合規規則（如封鎖超過閾值的退款）</li>
-          <li>Hook 提供<strong>確定性保證</strong>，prompt 只提供<strong>機率性合規</strong></li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>用 <code>PostToolUse</code> hook 正規化不同 MCP 工具的異質資料格式（Unix timestamp、ISO 8601、數字狀態碼）</li>
-          <li>攔截違反政策的 tool call（如退款超過 $500）並重導至替代工作流（如人工升級）</li>
-          <li>當業務規則需要<strong>保證合規</strong>時，選擇 hook 而非 prompt</li>
-        </ul>
-      </div>
+      <!-- ==================== TASK 1.4 & 1.5 ==================== -->
+      <div class="section-divider">Task 1.4 & 1.5</div>
 
       <div class="task-card">
-        <h3>Task 1.6: 設計複雜工作流的任務分解策略</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li><strong>固定順序 pipeline（Prompt Chaining）</strong> vs <strong>動態自適應分解</strong></li>
-          <li>Prompt Chaining：將 review 拆成逐步驟（如逐檔分析 → 跨檔整合）</li>
-          <li>自適應調查計畫：根據每步發現動態產生子任務</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>可預測的多面向 review → Prompt Chaining；開放式調查 → 動態分解</li>
-          <li>大型 code review：拆成 per-file local analysis + 獨立的 cross-file integration pass，避免注意力稀釋</li>
-          <li>開放式任務（如「幫 legacy codebase 加測試」）：先 mapping 結構 → 識別高影響區域 → 建立優先計畫</li>
-        </ul>
+        <h3>Task 1.4–1.5: 程式化強制 vs Prompt 指引 — 什麼時候該用哪個？</h3>
+        <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1rem;">
+          這是考試<strong>最愛考</strong>的概念。記住：Prompt 是機率性的，Hook 是確定性的。
+        </p>
       </div>
 
+      <!-- Before/After Comparison -->
+      <div class="compare-card">
+        <div class="compare-grid">
+          <div class="compare-side bad">
+            <div class="compare-label">✗ Prompt 指引（機率性）</div>
+<pre>system_prompt = """
+重要：在處理任何訂單操作前，
+你必須先呼叫 get_customer
+驗證客戶身份。
+
+永遠不要跳過這個步驟。
+"""
+
+# 問題：Claude「通常」會遵守，
+# 但 12% 的案例中仍然跳過了
+# → 錯誤退款、帳戶識別錯誤</pre>
+            <div class="compare-annotation">
+              Prompt 指令有非零失敗率。當錯誤有<strong>金融後果</strong>時，這不夠可靠。
+            </div>
+          </div>
+          <div class="compare-side good">
+            <div class="compare-label">✓ 程式化強制（確定性）</div>
+<pre># Hook 攔截 tool call
+def pre_tool_use(tool_name, args):
+    if tool_name in ["lookup_order",
+                     "process_refund"]:
+        if not state.customer_verified:
+            return {
+                "blocked": True,
+                "reason": "必須先完成客戶驗證"
+            }
+    return {"blocked": False}
+
+# 結果：100% 保證順序
+# 不可能跳過驗證步驟</pre>
+            <div class="compare-annotation">
+              Hook 提供<strong>確定性保證</strong>。無論 Claude 怎麼推理，程式碼都會攔截違規操作。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Decision Tree -->
+      <div class="task-card" style="background: transparent; border: none; padding: 0;">
+        <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem;">互動決策：你該用 Hook 還是 Prompt？</h4>
+      </div>
+      <div class="decision-tree" id="dt-hook-vs-prompt">
+        <div class="dt-node">
+          <div class="dt-question">如果 agent 違反了這個規則，會有什麼後果？</div>
+          <div class="dt-choices">
+            <button class="dt-choice" onclick="showDtResult('dt-r1', this)">金融損失 / 安全風險 / 法規違規</button>
+            <button class="dt-choice" onclick="showDtResult('dt-r2', this)">用戶體驗變差但不致命</button>
+            <button class="dt-choice" onclick="showDtResult('dt-r3', this)">只是風格偏好</button>
+          </div>
+        </div>
+        <div class="dt-result" id="dt-r1">
+          <strong>→ 用 Hook / 程式化強制。</strong><br>
+          退款前必須驗證身份、超過金額閾值必須人工審核 — 這些不能容忍任何失敗率。<br>
+          <code>PostToolUse</code> hook 或前置條件閘門提供 100% 保證。
+        </div>
+        <div class="dt-result" id="dt-r2">
+          <strong>→ 先試 Prompt 指引，觀察失敗率。</strong><br>
+          如果失敗率可接受（< 5%），prompt 夠用。如果太高，再加 hook。<br>
+          例如：建議 agent 先查看最近訂單再推薦產品。
+        </div>
+        <div class="dt-result" id="dt-r3">
+          <strong>→ Prompt 指引就好。</strong><br>
+          例如：回覆時用正式語氣、先感謝客戶等。不需要程式化強制。
+        </div>
+      </div>
+
+      <!-- ==================== TASK 1.6 ==================== -->
+      <div class="section-divider">Task 1.6</div>
+
       <div class="task-card">
-        <h3>Task 1.7: 管理 Session 狀態、恢復與分叉</h3>
-        <h4>必考知識</h4>
-        <ul>
-          <li><code>--resume &lt;session-name&gt;</code>：繼續特定的先前對話</li>
-          <li><code>fork_session</code>：從共享分析基線建立獨立分支，探索不同方案</li>
-          <li>恢復 session 後要告知 agent 哪些檔案有變更</li>
-          <li>當先前 tool results 已過時，開新 session 注入摘要比 resume 更可靠</li>
-        </ul>
-        <h4>必考技能</h4>
-        <ul>
-          <li>用 <code>--resume</code> 搭配 session name 跨工作階段繼續調查</li>
-          <li>用 <code>fork_session</code> 建立平行探索分支（如比較兩種測試策略）</li>
-          <li>判斷何時 resume（context 大致有效）vs 開新 session 注入摘要（tool results 已過時）</li>
-        </ul>
+        <h3>Task 1.6: 任務分解策略 — Prompt Chaining vs 動態分解</h3>
+      </div>
+
+      <!-- Before/After: Task Decomposition -->
+      <div class="compare-card">
+        <div class="compare-grid">
+          <div class="compare-side good" style="border-color: #06b6d4;">
+            <div class="compare-label" style="color: #06b6d4;">Prompt Chaining（可預測任務）</div>
+<pre>適合：Code Review 14 檔案
+
+Step 1: 逐檔分析 local issue
+  → file1.py 的 finding
+  → file2.py 的 finding
+  → ...
+
+Step 2: Cross-file integration pass
+  → 跨檔資料流分析
+  → 一致性檢查
+
+為什麼有效：
+每一步的範圍和輸出都可預測</pre>
+          </div>
+          <div class="compare-side good" style="border-color: #f59e0b;">
+            <div class="compare-label" style="color: #f59e0b;">動態分解（開放式任務）</div>
+<pre>適合：「幫 legacy codebase 加測試」
+
+Step 1: 掃描專案結構
+  → 發現 3 個模組
+
+Step 2: 分析每個模組的依賴
+  → 發現模組 B 依賴外部 API
+
+Step 3: 根據發現調整計畫
+  → 模組 B 需要 mock → 先做
+  → 模組 A 最簡單 → 先測試
+
+為什麼有效：
+每一步根據發現動態決定下一步</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TASK 1.7 ==================== -->
+      <div class="section-divider">Task 1.7</div>
+
+      <div class="task-card">
+        <h3>Task 1.7: Session 管理 — Resume vs 開新 Session</h3>
+      </div>
+
+      <!-- Think Card: Session -->
+      <div class="think-card">
+        <div class="think-scenario">
+          <h4>情境思考：你昨天用 Claude Code 分析了 codebase，今天同事改了 5 個檔案。你怎麼繼續？</h4>
+          <p>你昨天在 session "refactor-auth" 中分析了認證模組的架構。今天同事推了 5 個 commit 修改了其中 3 個檔案。</p>
+        </div>
+        <div class="think-options">
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">A) 直接 --resume refactor-auth 繼續做</button>
+          <button class="think-opt" data-correct="true" onclick="handleThink(this)">B) --resume refactor-auth，然後告訴 Claude 哪 3 個檔案被改了</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">C) 開全新 session，從頭重新分析整個 codebase</button>
+          <button class="think-opt" data-correct="false" onclick="handleThink(this)">D) 用 fork_session 建立一個分支來探索</button>
+        </div>
+        <div class="think-reveal">
+          <strong>B 最好。</strong>Resume 保留了昨天的 context（架構分析還是有效的），但你需要告訴 Claude 哪些檔案變了，讓它<strong>針對性重新分析</strong>，而不是全部重來。<br><br>
+          A 的問題：Claude 不知道檔案被改了，可能基於過時的 tool results 做決策。<br>
+          C 太浪費：大部分分析還是有效的，不需要從頭來。<br>
+          D 是用在探索<strong>不同方案</strong>的場景（如比較兩種重構策略），不是這個情境。
+        </div>
       </div>
 
       <div class="key-concept">
-        <strong>學習建議：</strong>Domain 1 佔 27%，是最高權重。務必熟記 <code>stop_reason</code> 的兩個值、Hub-and-spoke 架構、Hook vs Prompt 的選擇準則。建議實際用 Agent SDK 跑一次完整的 multi-agent flow。
+        <strong>Session 管理速記：</strong><br>
+        <code>--resume</code> — 先前 context 大致有效，只需更新部分內容<br>
+        <code>fork_session</code> — 從同一基線探索不同方案（如 A 方案 vs B 方案）<br>
+        <strong>開新 session + 注入摘要</strong> — 先前 tool results 已過時，resume 反而有害
       </div>
 
     </div>
@@ -179,5 +483,30 @@
   </footer>
 
   <script src="js/main.js"></script>
+  <script>
+    // Think Card handler
+    function handleThink(btn) {
+      const card = btn.closest('.think-card');
+      const reveal = card.querySelector('.think-reveal');
+      const options = card.querySelectorAll('.think-opt');
+      const isCorrect = btn.dataset.correct === 'true';
+
+      options.forEach(o => {
+        o.disabled = true;
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else o.classList.add('wrong');
+      });
+      reveal.classList.add('show');
+    }
+
+    // Decision Tree handler
+    function showDtResult(id, btn) {
+      const tree = btn.closest('.decision-tree');
+      tree.querySelectorAll('.dt-result').forEach(r => r.classList.remove('show'));
+      tree.querySelectorAll('.dt-choice').forEach(c => c.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById(id).classList.add('show');
+    }
+  </script>
 </body>
 </html>

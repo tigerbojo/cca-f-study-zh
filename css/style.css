@@ -291,6 +291,143 @@ section h2 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; text-al
   margin-left: auto; white-space: nowrap;
 }
 
+/* === Interactive Learning Components === */
+
+/* Animated Flow Diagram */
+.flow-diagram {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.5rem; margin: 1.5rem 0; overflow-x: auto;
+}
+.flow-diagram svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+.flow-step {
+  opacity: 0; transform: translateY(10px);
+  animation: flowIn 0.4s ease forwards;
+}
+.flow-step:nth-child(1) { animation-delay: 0.1s; }
+.flow-step:nth-child(2) { animation-delay: 0.3s; }
+.flow-step:nth-child(3) { animation-delay: 0.5s; }
+.flow-step:nth-child(4) { animation-delay: 0.7s; }
+.flow-step:nth-child(5) { animation-delay: 0.9s; }
+@keyframes flowIn { to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* Code Example (expandable) */
+.code-example { margin: 1rem 0; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.code-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.6rem 1rem; background: var(--bg-hover); cursor: pointer; user-select: none;
+}
+.code-header:hover { background: #222226; }
+.code-title { font-size: 0.82rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+.code-lang {
+  font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 3px;
+  background: var(--accent-glow); color: var(--accent); font-family: var(--mono);
+}
+.code-toggle { font-size: 0.8rem; color: var(--text-dim); transition: transform 0.2s; }
+.code-example.open .code-toggle { transform: rotate(180deg); }
+.code-body {
+  display: none; padding: 1rem; background: #0d0d0f;
+  border-top: 1px solid var(--border); overflow-x: auto;
+}
+.code-example.open .code-body { display: block; }
+.code-body pre {
+  margin: 0; font-family: var(--mono); font-size: 0.82rem; line-height: 1.65;
+  color: var(--text-dim); white-space: pre; tab-size: 2;
+}
+.code-body .hl-kw { color: #c084fc; }
+.code-body .hl-str { color: #86efac; }
+.code-body .hl-cm { color: #52525b; font-style: italic; }
+.code-body .hl-fn { color: #67e8f9; }
+.code-body .hl-num { color: #fbbf24; }
+.code-body .hl-key { color: #f472b6; }
+
+/* Before/After Comparison */
+.compare-card { margin: 1.5rem 0; }
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.compare-side {
+  background: var(--bg-card); border-radius: var(--radius-sm); padding: 1rem; overflow-x: auto;
+  border: 1px solid var(--border);
+}
+.compare-side.bad { border-color: #ef4444; }
+.compare-side.good { border-color: #10b981; }
+.compare-label {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;
+}
+.compare-side.bad .compare-label { color: #ef4444; }
+.compare-side.good .compare-label { color: #10b981; }
+.compare-side pre {
+  margin: 0; font-family: var(--mono); font-size: 0.78rem; line-height: 1.6;
+  color: var(--text-dim); white-space: pre-wrap;
+}
+.compare-annotation {
+  font-size: 0.78rem; color: var(--text-dim); margin-top: 0.75rem;
+  padding-top: 0.5rem; border-top: 1px solid var(--border); line-height: 1.5;
+}
+
+/* Scenario Think Card (interactive reveal) */
+.think-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  margin: 1.5rem 0; overflow: hidden;
+}
+.think-scenario {
+  padding: 1.25rem; cursor: default;
+}
+.think-scenario h4 { font-size: 0.95rem; margin-bottom: 0.5rem; }
+.think-scenario p { font-size: 0.88rem; color: var(--text-dim); line-height: 1.6; }
+.think-options { padding: 0 1.25rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.think-opt {
+  display: block; width: 100%; text-align: left; padding: 0.75rem 1rem;
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text); font-size: 0.85rem; cursor: pointer; transition: all 0.2s;
+  font-family: inherit; line-height: 1.5;
+}
+.think-opt:hover:not(:disabled) { border-color: var(--accent); }
+.think-opt.correct { border-color: #10b981; background: rgba(16, 185, 129, 0.1); cursor: default; }
+.think-opt.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.08); cursor: default; opacity: 0.6; }
+.think-reveal {
+  display: none; padding: 1rem 1.25rem; background: rgba(16, 185, 129, 0.06);
+  border-top: 1px solid rgba(16, 185, 129, 0.2); font-size: 0.85rem; color: var(--text-dim); line-height: 1.7;
+}
+.think-reveal.show { display: block; }
+.think-reveal strong { color: #10b981; }
+
+/* Decision Tree */
+.decision-tree { margin: 1.5rem 0; }
+.dt-node {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 1rem 1.25rem; margin-bottom: 0.5rem; cursor: pointer; transition: all 0.2s;
+}
+.dt-node:hover { border-color: var(--accent); }
+.dt-question { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; }
+.dt-choices { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.dt-choice {
+  padding: 0.4rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.8rem;
+  cursor: pointer; transition: all 0.2s; border: 1px solid var(--border);
+  background: var(--bg); color: var(--text);
+}
+.dt-choice:hover { border-color: var(--accent); background: var(--accent-glow); }
+.dt-choice.selected { border-color: var(--accent); background: var(--accent); color: #fff; }
+.dt-result {
+  display: none; padding: 1rem 1.25rem; margin-top: 0.5rem;
+  background: var(--accent-glow); border: 1px solid var(--accent); border-radius: var(--radius-sm);
+  font-size: 0.88rem; line-height: 1.6;
+}
+.dt-result.show { display: block; }
+
+/* Section divider with label */
+.section-divider {
+  display: flex; align-items: center; gap: 1rem; margin: 2.5rem 0 1.5rem;
+  font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;
+}
+.section-divider::before, .section-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+@media (max-width: 768px) {
+  .compare-grid { grid-template-columns: 1fr; }
+}
+
 /* === Responsive === */
 @media (max-width: 768px) {
   .nav-links {
