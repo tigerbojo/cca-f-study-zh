@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CCA-F 認證學習指南 | Claude Certified Architect – Foundations</title>
+  <meta name="description" content="繁體中文 Claude Certified Architect Foundations (CCA-F) 認證學習指南。涵蓋 5 大考試領域、模擬測驗、學習資源。">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗</text></svg>">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="nav-logo">CCA-F 學習指南</a>
+      <button class="nav-toggle" aria-label="切換選單">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html" class="active">首頁</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle">五大領域 ▾</a>
+          <ul class="dropdown-menu">
+            <li><a href="domain1.html">D1: Agentic 架構</a></li>
+            <li><a href="domain2.html">D2: 工具與 MCP</a></li>
+            <li><a href="domain3.html">D3: Claude Code</a></li>
+            <li><a href="domain4.html">D4: Prompt 工程</a></li>
+            <li><a href="domain5.html">D5: Context 管理</a></li>
+          </ul>
+        </li>
+        <li><a href="quiz.html">模擬測驗</a></li>
+        <li><a href="resources.html">學習資源</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container">
+      <h1>Claude Certified Architect<br><span class="highlight">Foundations (CCA-F)</span></h1>
+      <p class="hero-subtitle">第一個繁體中文 CCA-F 認證學習指南</p>
+      <p class="hero-desc">涵蓋 5 大考試領域 · 互動式模擬測驗 · 完整學習路線</p>
+      <div class="hero-actions">
+        <a href="#domains" class="btn btn-primary">開始學習</a>
+        <a href="quiz.html" class="btn btn-secondary">模擬測驗</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="exam-overview">
+    <div class="container">
+      <h2>考試概覽</h2>
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-icon">📝</div>
+          <h3>60 題選擇題</h3>
+          <p>單選題，4 選 1<br>不答不扣分</p>
+        </div>
+        <div class="info-card">
+          <div class="info-icon">⏱</div>
+          <h3>120 分鐘</h3>
+          <p>線上監考<br>英文出題</p>
+        </div>
+        <div class="info-card">
+          <div class="info-icon">🎯</div>
+          <h3>720 / 1000 通過</h3>
+          <p>量尺分數<br>即時出結果</p>
+        </div>
+        <div class="info-card">
+          <div class="info-icon">🎭</div>
+          <h3>6 選 4 情境</h3>
+          <p>隨機抽選 4 個情境<br>所有題目錨定情境</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="scenarios">
+    <div class="container">
+      <h2>6 大考試情境</h2>
+      <p class="section-desc">考試從以下 6 個情境中隨機抽選 4 個，所有題目都基於這些真實場景</p>
+      <div class="scenario-grid">
+        <div class="scenario-card">
+          <span class="scenario-num">S1</span>
+          <h3>客服解決方案 Agent</h3>
+          <p>用 Agent SDK 建構客服系統，處理退貨、帳單爭議，整合 MCP 工具，達成 80%+ 首次解決率</p>
+          <div class="scenario-domains">D1 D2 D5</div>
+        </div>
+        <div class="scenario-card">
+          <span class="scenario-num">S2</span>
+          <h3>Claude Code 程式碼生成</h3>
+          <p>用 Claude Code 加速開發，設定 CLAUDE.md、自訂指令、Plan Mode</p>
+          <div class="scenario-domains">D3 D5</div>
+        </div>
+        <div class="scenario-card">
+          <span class="scenario-num">S3</span>
+          <h3>多 Agent 研究系統</h3>
+          <p>Coordinator 分派 subagent 搜尋、分析、綜合、產出有引用的研究報告</p>
+          <div class="scenario-domains">D1 D2 D5</div>
+        </div>
+        <div class="scenario-card">
+          <span class="scenario-num">S4</span>
+          <h3>開發者生產力工具</h3>
+          <p>用 Agent SDK 幫工程師探索陌生 codebase、產出模板程式碼、整合 MCP Server</p>
+          <div class="scenario-domains">D2 D3 D1</div>
+        </div>
+        <div class="scenario-card">
+          <span class="scenario-num">S5</span>
+          <h3>Claude Code CI/CD</h3>
+          <p>將 Claude Code 整合到 CI pipeline，自動 code review、產測試、PR 回饋</p>
+          <div class="scenario-domains">D3 D4</div>
+        </div>
+        <div class="scenario-card">
+          <span class="scenario-num">S6</span>
+          <h3>結構化資料抽取</h3>
+          <p>從非結構化文件抽取資料，用 JSON Schema 驗證，處理邊界案例</p>
+          <div class="scenario-domains">D4 D5</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="domains" class="domains">
+    <div class="container">
+      <h2>五大考試領域</h2>
+      <div class="domain-list">
+        <a href="domain1.html" class="domain-card" style="--accent: #6366f1">
+          <div class="domain-weight">27%</div>
+          <div class="domain-info">
+            <h3>Domain 1: Agentic 架構與編排</h3>
+            <p>Agentic loop、多 Agent 編排、Coordinator-Subagent 模式、Hook、Session 管理</p>
+            <span class="domain-tasks">7 個 Task Statement</span>
+          </div>
+          <div class="domain-arrow">→</div>
+        </a>
+        <a href="domain2.html" class="domain-card" style="--accent: #06b6d4">
+          <div class="domain-weight">18%</div>
+          <div class="domain-info">
+            <h3>Domain 2: 工具設計與 MCP 整合</h3>
+            <p>Tool 介面設計、MCP 錯誤處理、tool_choice、MCP Server 設定、內建工具</p>
+            <span class="domain-tasks">5 個 Task Statement</span>
+          </div>
+          <div class="domain-arrow">→</div>
+        </a>
+        <a href="domain3.html" class="domain-card" style="--accent: #10b981">
+          <div class="domain-weight">20%</div>
+          <div class="domain-info">
+            <h3>Domain 3: Claude Code 設定與工作流</h3>
+            <p>CLAUDE.md 階層、Slash Command、Skills、Plan Mode、CI/CD 整合</p>
+            <span class="domain-tasks">6 個 Task Statement</span>
+          </div>
+          <div class="domain-arrow">→</div>
+        </a>
+        <a href="domain4.html" class="domain-card" style="--accent: #f59e0b">
+          <div class="domain-weight">20%</div>
+          <div class="domain-info">
+            <h3>Domain 4: Prompt 工程與結構化輸出</h3>
+            <p>精確度提升、Few-shot、tool_use JSON Schema、Batch API、Multi-pass Review</p>
+            <span class="domain-tasks">6 個 Task Statement</span>
+          </div>
+          <div class="domain-arrow">→</div>
+        </a>
+        <a href="domain5.html" class="domain-card" style="--accent: #ef4444">
+          <div class="domain-weight">15%</div>
+          <div class="domain-info">
+            <h3>Domain 5: Context 管理與可靠性</h3>
+            <p>Context Window 管理、Escalation、錯誤傳播、信心校準、來源追溯</p>
+            <span class="domain-tasks">6 個 Task Statement</span>
+          </div>
+          <div class="domain-arrow">→</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="container">
+      <h2>準備好了嗎？</h2>
+      <p>從模擬測驗開始，測試你目前的程度</p>
+      <a href="quiz.html" class="btn btn-primary btn-lg">開始模擬測驗</a>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <p>CCA-F 學習指南 — 繁體中文社群開源專案</p>
+      <p class="footer-note">本站為非官方學習資源，與 Anthropic 無隸屬關係。內容基於公開的考試指南整理。</p>
+      <p><a href="https://github.com/tigerbojo/cca-f-study-zh" target="_blank">GitHub</a></p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

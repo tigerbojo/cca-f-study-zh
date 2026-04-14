@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D1: Agentic 架構與編排 | CCA-F 學習指南</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="nav-logo">CCA-F 學習指南</a>
+      <button class="nav-toggle" aria-label="切換選單">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html">首頁</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle">五大領域 ▾</a>
+          <ul class="dropdown-menu">
+            <li><a href="domain1.html" class="active">D1: Agentic 架構</a></li>
+            <li><a href="domain2.html">D2: 工具與 MCP</a></li>
+            <li><a href="domain3.html">D3: Claude Code</a></li>
+            <li><a href="domain4.html">D4: Prompt 工程</a></li>
+            <li><a href="domain5.html">D5: Context 管理</a></li>
+          </ul>
+        </li>
+        <li><a href="quiz.html">模擬測驗</a></li>
+        <li><a href="resources.html">學習資源</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="page-header" style="--accent: #6366f1">
+    <div class="container">
+      <div class="breadcrumb"><a href="index.html">首頁</a> / Domain 1</div>
+      <h1>Domain 1: Agentic 架構與編排</h1>
+      <div class="weight-badge">佔分 27% — 最高權重</div>
+    </div>
+  </header>
+
+  <section class="task-section">
+    <div class="container">
+
+      <div class="key-concept">
+        <strong>核心考點：</strong>這個 Domain 考的是你對 Agentic Loop 生命週期的理解 — 怎麼用 <code>stop_reason</code> 控制迴圈、怎麼設計 Coordinator-Subagent 多 Agent 系統、以及何時該用程式化強制（Hooks）而非 Prompt 指引。
+      </div>
+
+      <div class="task-card">
+        <h3>Task 1.1: 設計 Agentic Loop 進行自主任務執行</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li>Agentic Loop 生命週期：發送請求 → 檢查 <code>stop_reason</code>（<code>"tool_use"</code> vs <code>"end_turn"</code>）→ 執行工具 → 回傳結果</li>
+          <li>Tool results 被 append 到對話歷史，讓模型能推理下一步行動</li>
+          <li><strong>Model-driven 決策</strong>（Claude 自己決定用哪個工具）vs <strong>預設 decision tree</strong>（固定工具流程）</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>實作 agentic loop：<code>stop_reason === "tool_use"</code> 時繼續迴圈，<code>"end_turn"</code> 時終止</li>
+          <li>每次迭代間將 tool results 加入 conversation context</li>
+          <li><strong>避免反模式：</strong>不要用自然語言解析來判斷終止、不要用任意迭代上限作為主要終止機制、不要檢查 assistant text 來判斷完成</li>
+        </ul>
+      </div>
+
+      <div class="task-card">
+        <h3>Task 1.2: 用 Coordinator-Subagent 模式編排多 Agent 系統</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li><strong>Hub-and-spoke 架構：</strong>Coordinator 管理所有 subagent 間的通訊、錯誤處理、資訊路由</li>
+          <li>Subagent 擁有<strong>獨立 context</strong> — 不會自動繼承 coordinator 的對話歷史</li>
+          <li>Coordinator 負責：任務分解、委派、結果聚合、動態選擇要呼叫哪個 subagent</li>
+          <li>過度狹窄的任務分解風險：可能導致研究主題覆蓋不完整</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>設計 coordinator 動態分析需求、選擇要呼叫哪些 subagent（不是永遠跑完整流程）</li>
+          <li>分配不同 subagent 負責不同子主題或來源類型，減少重複</li>
+          <li>迭代精煉迴圈：coordinator 評估 synthesis 品質 → 發現缺口 → 重新委派 search/analysis → 重新 synthesis</li>
+          <li>所有 subagent 通訊都經過 coordinator，確保可觀測性和一致的錯誤處理</li>
+        </ul>
+      </div>
+
+      <div class="task-card">
+        <h3>Task 1.3: 設定 Subagent 的呼叫、Context 傳遞與 Spawn</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li><code>Task</code> 工具是 spawn subagent 的機制，coordinator 的 <code>allowedTools</code> 必須包含 <code>"Task"</code></li>
+          <li>Subagent context 必須<strong>顯式提供</strong>在 prompt 中 — 不會自動繼承、不會共享記憶</li>
+          <li><code>AgentDefinition</code> 設定：描述、system prompt、工具限制</li>
+          <li><code>fork_session</code>：從共享分析基線建立獨立分支，探索不同方案</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>在 subagent prompt 中直接包含前面 agent 的完整發現（例如把 web search 結果傳給 synthesis agent）</li>
+          <li>用結構化格式分離內容與 metadata（source URL、文件名、頁碼）保留出處</li>
+          <li><strong>平行 spawn：</strong>在 coordinator 的一個回應中發出多個 <code>Task</code> tool call（而非分成多個 turn）</li>
+          <li>Coordinator prompt 應指定研究目標和品質標準，而非 step-by-step 指令</li>
+        </ul>
+      </div>
+
+      <div class="task-card">
+        <h3>Task 1.4: 實作多步驟工作流的強制與交接模式</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li><strong>程式化強制</strong>（hooks、前置條件閘門）vs <strong>Prompt 指引</strong>：工作流順序保證</li>
+          <li>當需要確定性合規（如身份驗證後才能做金融操作），prompt 指令有非零失敗率</li>
+          <li>結構化交接協議：包含客戶詳情、根因分析、建議行動</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>實作程式化前置條件：在 <code>get_customer</code> 回傳已驗證 customer ID 前，封鎖 <code>process_refund</code></li>
+          <li>分解多面向客戶請求為獨立項目，平行調查後綜合統一回覆</li>
+          <li>編制結構化交接摘要（customer ID、根因、退款金額、建議動作）給人類 agent</li>
+        </ul>
+      </div>
+
+      <div class="key-concept">
+        <strong>考試陷阱：</strong>當題目問「如何確保 agent 一定先驗證客戶身份」時，正確答案通常是<strong>程式化強制（Hook / 前置條件）</strong>，而不是「在 system prompt 加強指示」或「加 few-shot 範例」。Prompt 方法是 probabilistic，不夠可靠。
+      </div>
+
+      <div class="task-card">
+        <h3>Task 1.5: 用 Agent SDK Hooks 攔截 Tool Call 和正規化資料</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li><code>PostToolUse</code> hook：攔截工具結果，在模型處理前做轉換</li>
+          <li>攔截外發 tool call 以強制合規規則（如封鎖超過閾值的退款）</li>
+          <li>Hook 提供<strong>確定性保證</strong>，prompt 只提供<strong>機率性合規</strong></li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>用 <code>PostToolUse</code> hook 正規化不同 MCP 工具的異質資料格式（Unix timestamp、ISO 8601、數字狀態碼）</li>
+          <li>攔截違反政策的 tool call（如退款超過 $500）並重導至替代工作流（如人工升級）</li>
+          <li>當業務規則需要<strong>保證合規</strong>時，選擇 hook 而非 prompt</li>
+        </ul>
+      </div>
+
+      <div class="task-card">
+        <h3>Task 1.6: 設計複雜工作流的任務分解策略</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li><strong>固定順序 pipeline（Prompt Chaining）</strong> vs <strong>動態自適應分解</strong></li>
+          <li>Prompt Chaining：將 review 拆成逐步驟（如逐檔分析 → 跨檔整合）</li>
+          <li>自適應調查計畫：根據每步發現動態產生子任務</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>可預測的多面向 review → Prompt Chaining；開放式調查 → 動態分解</li>
+          <li>大型 code review：拆成 per-file local analysis + 獨立的 cross-file integration pass，避免注意力稀釋</li>
+          <li>開放式任務（如「幫 legacy codebase 加測試」）：先 mapping 結構 → 識別高影響區域 → 建立優先計畫</li>
+        </ul>
+      </div>
+
+      <div class="task-card">
+        <h3>Task 1.7: 管理 Session 狀態、恢復與分叉</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li><code>--resume &lt;session-name&gt;</code>：繼續特定的先前對話</li>
+          <li><code>fork_session</code>：從共享分析基線建立獨立分支，探索不同方案</li>
+          <li>恢復 session 後要告知 agent 哪些檔案有變更</li>
+          <li>當先前 tool results 已過時，開新 session 注入摘要比 resume 更可靠</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>用 <code>--resume</code> 搭配 session name 跨工作階段繼續調查</li>
+          <li>用 <code>fork_session</code> 建立平行探索分支（如比較兩種測試策略）</li>
+          <li>判斷何時 resume（context 大致有效）vs 開新 session 注入摘要（tool results 已過時）</li>
+        </ul>
+      </div>
+
+      <div class="key-concept">
+        <strong>學習建議：</strong>Domain 1 佔 27%，是最高權重。務必熟記 <code>stop_reason</code> 的兩個值、Hub-and-spoke 架構、Hook vs Prompt 的選擇準則。建議實際用 Agent SDK 跑一次完整的 multi-agent flow。
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <p><a href="domain2.html" class="btn btn-primary">下一章：Domain 2 →</a></p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

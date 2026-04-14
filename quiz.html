@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模擬測驗 | CCA-F 學習指南</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="nav-logo">CCA-F 學習指南</a>
+      <button class="nav-toggle" aria-label="切換選單">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html">首頁</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle">五大領域 ▾</a>
+          <ul class="dropdown-menu">
+            <li><a href="domain1.html">D1: Agentic 架構</a></li>
+            <li><a href="domain2.html">D2: 工具與 MCP</a></li>
+            <li><a href="domain3.html">D3: Claude Code</a></li>
+            <li><a href="domain4.html">D4: Prompt 工程</a></li>
+            <li><a href="domain5.html">D5: Context 管理</a></li>
+          </ul>
+        </li>
+        <li><a href="quiz.html" class="active">模擬測驗</a></li>
+        <li><a href="resources.html">學習資源</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="page-header">
+    <div class="container">
+      <h1>模擬測驗</h1>
+      <p style="color: var(--text-dim)">12 題情境式選擇題，含繁體中文解析</p>
+    </div>
+  </header>
+
+  <section>
+    <div class="container quiz-container" id="quiz-app">
+      <!-- Rendered by JS -->
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <p>CCA-F 學習指南 — 繁體中文社群開源專案</p>
+    </div>
+  </footer>
+
+  <script src="js/quiz-data.js"></script>
+  <script src="js/quiz.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

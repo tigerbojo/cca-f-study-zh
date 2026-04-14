@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D3: Claude Code 設定與工作流 | CCA-F 學習指南</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="nav-logo">CCA-F 學習指南</a>
+      <button class="nav-toggle" aria-label="切換選單">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html">首頁</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle">五大領域 ▾</a>
+          <ul class="dropdown-menu">
+            <li><a href="domain1.html">D1: Agentic 架構</a></li>
+            <li><a href="domain2.html">D2: 工具與 MCP</a></li>
+            <li><a href="domain3.html" class="active">D3: Claude Code</a></li>
+            <li><a href="domain4.html">D4: Prompt 工程</a></li>
+            <li><a href="domain5.html">D5: Context 管理</a></li>
+          </ul>
+        </li>
+        <li><a href="quiz.html">模擬測驗</a></li>
+        <li><a href="resources.html">學習資源</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="page-header" style="--accent: #10b981">
+    <div class="container">
+      <div class="breadcrumb"><a href="index.html">首頁</a> / Domain 3</div>
+      <h1>Domain 3: Claude Code 設定與工作流</h1>
+      <div class="weight-badge" style="background: #10b981">佔分 20%</div>
+    </div>
+  </header>
+
+  <section class="task-section">
+    <div class="container">
+
+      <div class="key-concept">
+        <strong>核心考點：</strong>CLAUDE.md 的三層架構（user / project / directory）、<code>.claude/rules/</code> 路徑規則、Slash Command vs Skill 的差異、Plan Mode 的使用時機、<code>-p</code> flag 的 CI/CD 用法。
+      </div>
+
+      <div class="task-card">
+        <h3>Task 3.1: 設定 CLAUDE.md 的階層、作用域與模組化組織</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li>CLAUDE.md 三層架構：
+            <br>• <strong>用戶級</strong> <code>~/.claude/CLAUDE.md</code> — 只影響自己，不進 version control
+            <br>• <strong>專案級</strong> <code>.claude/CLAUDE.md</code> 或根目錄 <code>CLAUDE.md</code> — 團隊共享
+            <br>• <strong>目錄級</strong> 子目錄中的 <code>CLAUDE.md</code> — 特定目錄覆寫
+          </li>
+          <li><code>@import</code> 語法：引用外部檔案保持模組化（如針對每個 package import 不同標準檔）</li>
+          <li><code>.claude/rules/</code> 目錄：依主題分檔的規則，替代巨型 CLAUDE.md</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>診斷層級問題（如新同事沒收到指令 → 因為指令在 user-level 而非 project-level）</li>
+          <li>用 <code>@import</code> 在每個 package 的 CLAUDE.md 選擇性引入相關標準</li>
+          <li>將大型 CLAUDE.md 拆分到 <code>.claude/rules/</code>（如 <code>testing.md</code>、<code>api-conventions.md</code>）</li>
+          <li>用 <code>/memory</code> 指令驗證載入了哪些記憶檔案，診斷跨 session 不一致行為</li>
+        </ul>
+      </div>
+
+      <div class="task-card">
+        <h3>Task 3.2: 建立自訂 Slash Command 和 Skill</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li><strong>專案級 Command</strong> <code>.claude/commands/</code> — 透過 version control 共享</li>
+          <li><strong>用戶級 Command</strong> <code>~/.claude/commands/</code> — 個人使用</li>
+          <li>Skill 在 <code>.claude/skills/</code> 中搭配 <code>SKILL.md</code>，支援 frontmatter：<code>context: fork</code>、<code>allowed-tools</code>、<code>argument-hint</code></li>
+          <li><code>context: fork</code>：在隔離的 sub-agent context 中跑 skill，避免污染主對話</li>
+          <li>個人 skill 自訂：在 <code>~/.claude/skills/</code> 用不同名稱建立個人變體</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>在 <code>.claude/commands/</code> 建立團隊共享的 slash command</li>
+          <li>用 <code>context: fork</code> 隔離產出大量輸出的 skill（如 codebase 分析）</li>
+          <li>用 <code>allowed-tools</code> 限制 skill 執行時的工具存取權</li>
+          <li>用 <code>argument-hint</code> 在沒給參數時提示開發者</li>
+          <li>判斷：Skill（on-demand、任務導向）vs CLAUDE.md（always-loaded、通用標準）</li>
+        </ul>
+      </div>
+
+      <div class="task-card">
+        <h3>Task 3.3: 用路徑規則做條件式載入</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li><code>.claude/rules/</code> 檔案搭配 YAML frontmatter <code>paths</code> 欄位含 glob pattern</li>
+          <li>路徑規則只在編輯匹配檔案時載入 → 減少不相關 context 和 token 使用</li>
+          <li>Glob pattern 規則優於目錄級 CLAUDE.md → 適合跨多目錄的慣例（如散佈在 codebase 中的測試檔）</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>建立帶 YAML frontmatter 的路徑規則（如 <code>paths: ["terraform/**/*"]</code>）</li>
+          <li>用 glob pattern 對任何位置的特定類型檔案套用慣例（如 <code>**/*.test.tsx</code>）</li>
+          <li>當慣例需跨 codebase 套用時，選路徑規則而非子目錄 CLAUDE.md</li>
+        </ul>
+      </div>
+
+      <div class="key-concept">
+        <strong>考試重點：</strong>測試檔散佈在整個 codebase（如 <code>Button.test.tsx</code> 和 <code>Button.tsx</code> 同目錄）→ 用 <code>.claude/rules/</code> + glob pattern 是最佳解，因為目錄級 CLAUDE.md 無法跨目錄套用。
+      </div>
+
+      <div class="task-card">
+        <h3>Task 3.4: 判斷何時用 Plan Mode vs 直接執行</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li><strong>Plan Mode</strong>：複雜任務、大規模變更、多種可行方案、架構決策、多檔修改</li>
+          <li><strong>直接執行</strong>：簡單、範圍明確的變更（如單一函式加一個驗證條件）</li>
+          <li>Plan Mode 允許安全地探索 codebase 和設計方案再動手，避免昂貴的返工</li>
+          <li><code>Explore</code> subagent：隔離冗長的探索輸出，回傳摘要保護主對話 context</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>架構性任務 → Plan Mode（微服務重構、45+ 檔案 library 遷移）</li>
+          <li>範圍明確的變更 → 直接執行（單檔 bug fix、加日期驗證條件）</li>
+          <li>用 <code>Explore</code> subagent 做冗長的探索階段，避免 context window 耗盡</li>
+          <li>組合使用：Plan Mode 做調查 + 直接執行做實作</li>
+        </ul>
+      </div>
+
+      <div class="task-card">
+        <h3>Task 3.5: 迭代精煉技巧</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li>具體的 input/output 範例是溝通預期轉換最有效的方式</li>
+          <li>TDD 迭代：先寫測試 → 分享測試失敗結果 → 引導漸進改善</li>
+          <li>Interview pattern：讓 Claude 提問，浮現開發者沒想到的考量</li>
+          <li>多個互相影響的問題 → 一次訊息處理；獨立問題 → 逐一修正</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>提供 2-3 個具體 input/output 範例來釐清轉換需求</li>
+          <li>先寫涵蓋預期行為、邊界案例和效能需求的測試套件</li>
+          <li>在不熟悉的領域用 interview pattern 浮現設計考量（如 cache invalidation 策略）</li>
+          <li>互相影響的問題 → 單一詳細訊息；獨立問題 → 逐一迭代</li>
+        </ul>
+      </div>
+
+      <div class="task-card">
+        <h3>Task 3.6: 將 Claude Code 整合到 CI/CD Pipeline</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li><code>-p</code>（或 <code>--print</code>）flag：在自動化 pipeline 中以非互動模式執行 Claude Code</li>
+          <li><code>--output-format json</code> + <code>--json-schema</code>：在 CI 中產出結構化輸出</li>
+          <li>CLAUDE.md 提供專案 context（測試標準、fixture 慣例、review 標準）給 CI 中的 Claude Code</li>
+          <li>Session context 隔離：產生程式碼的 session 不適合 review 自己的變更 → 需要獨立 review instance</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>用 <code>-p</code> flag 在 CI 中跑 Claude Code，避免互動式輸入卡住</li>
+          <li>用 <code>--output-format json</code> + <code>--json-schema</code> 產出可機器解析的結果，自動貼為 PR inline comment</li>
+          <li>重新 review 時包含先前結果，指示只報告新的或仍未解決的問題（避免重複 comment）</li>
+          <li>在 CLAUDE.md 中記錄測試標準和 fixture，提升測試產出品質</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <p>
+        <a href="domain2.html" class="btn btn-secondary">← Domain 2</a>
+        <a href="domain4.html" class="btn btn-primary">Domain 4 →</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

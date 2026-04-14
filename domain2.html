@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D2: 工具設計與 MCP 整合 | CCA-F 學習指南</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="nav-logo">CCA-F 學習指南</a>
+      <button class="nav-toggle" aria-label="切換選單">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html">首頁</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle">五大領域 ▾</a>
+          <ul class="dropdown-menu">
+            <li><a href="domain1.html">D1: Agentic 架構</a></li>
+            <li><a href="domain2.html" class="active">D2: 工具與 MCP</a></li>
+            <li><a href="domain3.html">D3: Claude Code</a></li>
+            <li><a href="domain4.html">D4: Prompt 工程</a></li>
+            <li><a href="domain5.html">D5: Context 管理</a></li>
+          </ul>
+        </li>
+        <li><a href="quiz.html">模擬測驗</a></li>
+        <li><a href="resources.html">學習資源</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="page-header" style="--accent: #06b6d4">
+    <div class="container">
+      <div class="breadcrumb"><a href="index.html">首頁</a> / Domain 2</div>
+      <h1>Domain 2: 工具設計與 MCP 整合</h1>
+      <div class="weight-badge" style="background: #06b6d4">佔分 18%</div>
+    </div>
+  </header>
+
+  <section class="task-section">
+    <div class="container">
+
+      <div class="key-concept">
+        <strong>核心考點：</strong>Tool description 是 LLM 選擇工具的主要依據。模糊或重疊的描述會導致 misrouting。MCP 的 <code>isError</code> flag、結構化錯誤回應、以及工具分配策略是本章重點。
+      </div>
+
+      <div class="task-card">
+        <h3>Task 2.1: 設計有效的 Tool 介面 — 清晰描述與邊界</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li>Tool descriptions 是 LLM 選擇工具的<strong>主要機制</strong>；描述太簡略 → 選擇不可靠</li>
+          <li>描述應包含：輸入格式、範例查詢、邊界案例、何時用它 vs 類似工具</li>
+          <li>模糊/重疊描述會導致 misrouting（如 <code>analyze_content</code> vs <code>analyze_document</code> 描述幾乎一樣）</li>
+          <li>System prompt 中的關鍵字敏感指令可能覆蓋好的 tool description</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>寫出清楚區分每個工具的描述：用途、預期輸入/輸出、何時用 vs 類似替代</li>
+          <li>重命名工具消除功能重疊（如 <code>analyze_content</code> → <code>extract_web_results</code>）</li>
+          <li>拆分通用工具為特定用途工具（如 <code>analyze_document</code> → <code>extract_data_points</code> + <code>summarize_content</code> + <code>verify_claim_against_source</code>）</li>
+        </ul>
+      </div>
+
+      <div class="task-card">
+        <h3>Task 2.2: 實作 MCP 工具的結構化錯誤回應</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li>MCP <code>isError</code> flag：向 agent 傳達工具失敗</li>
+          <li>錯誤分類：<strong>暫時性</strong>（timeout）、<strong>驗證</strong>（無效輸入）、<strong>業務</strong>（政策違規）、<strong>權限</strong></li>
+          <li>統一的泛用錯誤（"Operation failed"）阻止 agent 做出適當的恢復決策</li>
+          <li>可重試 vs 不可重試錯誤：結構化 metadata 防止浪費重試</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>回傳結構化錯誤 metadata：<code>errorCategory</code>、<code>isRetryable</code> boolean、人類可讀描述</li>
+          <li>業務規則違規：<code>retriable: false</code> + 客戶友善說明</li>
+          <li>Subagent 內部處理暫時性錯誤，只傳播無法本地解決的錯誤（附帶部分結果和嘗試記錄）</li>
+          <li>區分<strong>存取失敗</strong>（需重試決策）vs <strong>合法空結果</strong>（查詢成功但沒有匹配）</li>
+        </ul>
+      </div>
+
+      <div class="task-card">
+        <h3>Task 2.3: 適當分配工具給各 Agent 並設定 tool_choice</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li>給 agent 太多工具（如 18 個而非 4-5 個）會<strong>降低工具選擇可靠性</strong></li>
+          <li>擁有職責外工具的 agent 傾向誤用它們（如 synthesis agent 嘗試 web search）</li>
+          <li>Scoped tool access：只給 agent 其角色需要的工具</li>
+          <li><code>tool_choice</code> 選項：<code>"auto"</code>、<code>"any"</code>、強制指定工具</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>限制每個 subagent 只有其角色相關的工具</li>
+          <li>用受限替代工具取代通用工具（如 <code>fetch_url</code> → <code>load_document</code>）</li>
+          <li>為高頻需求提供 scoped 跨角色工具（如 synthesis agent 的 <code>verify_fact</code>）</li>
+          <li><code>tool_choice</code> 強制選擇：確保特定工具先被呼叫（如強制 <code>extract_metadata</code>）</li>
+          <li><code>tool_choice: "any"</code>：保證模型呼叫工具而非回傳對話文字</li>
+        </ul>
+      </div>
+
+      <div class="key-concept">
+        <strong>考試陷阱：</strong>當 agent 經常選錯工具時，「第一步」通常是<strong>改善 tool description</strong>（低成本高效果），而非加 few-shot 範例（增加 token overhead）或建 routing layer（過度工程化）。
+      </div>
+
+      <div class="task-card">
+        <h3>Task 2.4: 將 MCP Server 整合到 Claude Code 和 Agent 工作流</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li>MCP Server scope：<strong>專案級</strong> <code>.mcp.json</code>（團隊共享）vs <strong>用戶級</strong> <code>~/.claude.json</code>（個人）</li>
+          <li><code>.mcp.json</code> 中的環境變數展開（如 <code>${GITHUB_TOKEN}</code>）— 不用 commit 密鑰</li>
+          <li>所有設定的 MCP server 在連線時被發現，工具同時可用</li>
+          <li>MCP resources：暴露內容目錄（issue 摘要、文件層級、DB schema）減少探索性 tool call</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>在 <code>.mcp.json</code>（專案級）設定共享 MCP server + 環境變數展開</li>
+          <li>在 <code>~/.claude.json</code>（用戶級）設定個人/實驗性 MCP server</li>
+          <li>增強 MCP tool description，防止 agent 偏好內建工具（如 Grep）而忽略更強大的 MCP 工具</li>
+          <li>優先用現有社群 MCP server（如 Jira），只在團隊特殊需求時才建自訂 server</li>
+          <li>將內容目錄暴露為 MCP resources，讓 agent 知道有哪些資料可用</li>
+        </ul>
+      </div>
+
+      <div class="task-card">
+        <h3>Task 2.5: 有效選用內建工具（Read, Write, Edit, Bash, Grep, Glob）</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li><code>Grep</code>：內容搜尋（搜尋檔案內容中的 pattern，如函式名、錯誤訊息）</li>
+          <li><code>Glob</code>：檔案路徑模式匹配（依名稱或副檔名找檔案）</li>
+          <li><code>Read/Write</code>：完整檔案操作；<code>Edit</code>：用唯一文字匹配做精準修改</li>
+          <li>當 <code>Edit</code> 因非唯一文字失敗時，用 <code>Read</code> + <code>Write</code> 作為 fallback</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>搜尋程式碼內容 → <code>Grep</code>（找函式呼叫者、定位錯誤訊息）</li>
+          <li>找檔案 pattern → <code>Glob</code>（如 <code>**/*.test.tsx</code>）</li>
+          <li>漸進式理解 codebase：先 <code>Grep</code> 找進入點 → <code>Read</code> 追蹤 import → 而非一開始就讀所有檔案</li>
+          <li>追蹤跨 wrapper module 的函式使用：先找出所有 exported names → 再搜尋每個名稱</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <p>
+        <a href="domain1.html" class="btn btn-secondary">← Domain 1</a>
+        <a href="domain3.html" class="btn btn-primary">Domain 3 →</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

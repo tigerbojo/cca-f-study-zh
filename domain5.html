@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D5: Context 管理與可靠性 | CCA-F 學習指南</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="nav-logo">CCA-F 學習指南</a>
+      <button class="nav-toggle" aria-label="切換選單">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html">首頁</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle">五大領域 ▾</a>
+          <ul class="dropdown-menu">
+            <li><a href="domain1.html">D1: Agentic 架構</a></li>
+            <li><a href="domain2.html">D2: 工具與 MCP</a></li>
+            <li><a href="domain3.html">D3: Claude Code</a></li>
+            <li><a href="domain4.html">D4: Prompt 工程</a></li>
+            <li><a href="domain5.html" class="active">D5: Context 管理</a></li>
+          </ul>
+        </li>
+        <li><a href="quiz.html">模擬測驗</a></li>
+        <li><a href="resources.html">學習資源</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="page-header" style="--accent: #ef4444">
+    <div class="container">
+      <div class="breadcrumb"><a href="index.html">首頁</a> / Domain 5</div>
+      <h1>Domain 5: Context 管理與可靠性</h1>
+      <div class="weight-badge" style="background: #ef4444">佔分 15%</div>
+    </div>
+  </header>
+
+  <section class="task-section">
+    <div class="container">
+
+      <div class="key-concept">
+        <strong>核心考點：</strong>Progressive summarization 的陷阱、Lost-in-the-middle 效應、Escalation 的正確時機、結構化錯誤傳播、Scratchpad 檔案抗 context 退化、來源追溯（provenance）的重要性。
+      </div>
+
+      <div class="task-card">
+        <h3>Task 5.1: 在長對話中保留關鍵資訊</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li><strong>Progressive summarization 風險：</strong>數值、百分比、日期、客戶明確期望被濃縮成模糊摘要</li>
+          <li><strong>Lost-in-the-middle 效應：</strong>模型可靠處理輸入的開頭和結尾，但可能遺漏中間段落的 finding</li>
+          <li>Tool results 在 context 中累積，消耗 token 但相關性低（如 order lookup 40+ fields 只需要 5 個）</li>
+          <li>後續 API 請求必須傳完整對話歷史以維持對話連貫性</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>將交易事實（金額、日期、訂單號、狀態）抽取到持久性 "case facts" 區塊，每次 prompt 都包含</li>
+          <li>修剪冗長的 tool output 只保留相關欄位（如 order lookup 只保留退貨相關欄位）</li>
+          <li>關鍵 finding 摘要放在聚合輸入的<strong>開頭</strong>，詳細結果用明確 section header 組織 → 對抗位置效應</li>
+          <li>要求 subagent 在結構化輸出中包含 metadata（日期、來源位置、方法論 context）</li>
+          <li>修改上游 agent 回傳結構化資料（key facts、citations、relevance scores）而非冗長的推理鏈</li>
+        </ul>
+      </div>
+
+      <div class="task-card">
+        <h3>Task 5.2: 設計有效的 Escalation 和歧義解決模式</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li>適當的 escalation 觸發：客戶要求轉人工、政策例外/缺口、無法取得有意義的進展</li>
+          <li>客戶明確要求轉人工 → <strong>立即 escalate</strong>；問題在 agent 能力範圍內 → 先提供解決方案</li>
+          <li><strong>情緒分析和自報信心分數</strong>是案例複雜度的<strong>不可靠代理指標</strong></li>
+          <li>多重客戶匹配 → 要求額外識別資訊澄清，而非用 heuristic 選擇</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>在 system prompt 加明確 escalation 標準 + few-shot 範例</li>
+          <li>客戶明確要求人工 → 立即轉接，不先嘗試調查</li>
+          <li>承認挫折感同時提供解決方案；客戶再次堅持才 escalate</li>
+          <li>政策模糊或沉默 → escalate（如政策只提到自家調價，客戶要求比價）</li>
+          <li>工具回傳多筆匹配 → 要求額外識別資訊，不用 heuristic 選</li>
+        </ul>
+      </div>
+
+      <div class="key-concept">
+        <strong>考試陷阱：</strong>「讓 agent 自報信心分數 1-10 來決定是否 escalate」是<strong>錯誤答案</strong>。LLM 自報信心校準很差 — agent 在困難案例上反而可能過度自信。正確做法是用<strong>明確標準 + few-shot 範例</strong>。
+      </div>
+
+      <div class="task-card">
+        <h3>Task 5.3: 跨多 Agent 系統的錯誤傳播策略</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li>結構化錯誤 context（失敗類型、嘗試的查詢、部分結果、替代方案）→ 讓 coordinator 做智慧恢復</li>
+          <li>區分<strong>存取失敗</strong>（timeout，需重試決策）vs <strong>合法空結果</strong>（查詢成功但無匹配）</li>
+          <li>泛用錯誤狀態（"search unavailable"）隱藏了 coordinator 需要的 context</li>
+          <li>兩種<strong>反模式</strong>：靜默壓抑錯誤（空結果當成功）、單一失敗終止整個工作流</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>回傳結構化錯誤 context：失敗類型 + 嘗試了什麼 + 部分結果 + 替代方案</li>
+          <li>區分存取失敗 vs 合法空結果</li>
+          <li>Subagent 本地處理暫時性錯誤，只傳播無法解決的錯誤（附帶部分結果和嘗試記錄）</li>
+          <li>Synthesis 輸出加覆蓋標注：哪些 finding 有充分支持、哪些領域因來源不可用而有缺口</li>
+        </ul>
+      </div>
+
+      <div class="task-card">
+        <h3>Task 5.4: 大型 Codebase 探索中的 Context 管理</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li><strong>Context 退化</strong>：長 session 後模型開始給不一致答案，引用「典型模式」而非之前發現的特定類別</li>
+          <li><strong>Scratchpad 檔案</strong>：跨 context 邊界持久化關鍵發現</li>
+          <li>Subagent 委派：隔離冗長探索輸出，主 agent 保持高階協調</li>
+          <li>結構化狀態持久化：每個 agent 匯出狀態到已知位置，coordinator 載入 manifest 恢復</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>Spawn subagent 調查特定問題（「找所有測試檔」「追蹤退款流程依賴」）</li>
+          <li>Agent 維護 scratchpad 檔案記錄關鍵發現，後續問題引用它們對抗 context 退化</li>
+          <li>探索階段間摘要關鍵發現，注入 subagent 的初始 context</li>
+          <li>用結構化 agent 狀態匯出（manifest）設計 crash recovery</li>
+          <li>用 <code>/compact</code> 在長 session 中減少 context 使用量</li>
+        </ul>
+      </div>
+
+      <div class="task-card">
+        <h3>Task 5.5: 設計人工審查工作流與信心校準</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li>聚合準確度指標（如 97% overall）可能<strong>掩蓋</strong>特定文件類型或欄位的差勁表現</li>
+          <li><strong>分層隨機抽樣</strong>：測量高信心抽取的錯誤率、偵測新型錯誤模式</li>
+          <li>用標記驗證集校準 field-level confidence scores 來路由審查注意力</li>
+          <li>自動化前需按文件類型和欄位段驗證準確度一致性</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>對高信心抽取實施分層隨機抽樣，持續量測錯誤率</li>
+          <li>按文件類型和欄位分析準確度，驗證各段一致性</li>
+          <li>模型輸出 field-level confidence scores → 用標記驗證集校準審查閾值</li>
+          <li>低信心或來源模糊/矛盾的抽取 → 路由到人工審查</li>
+        </ul>
+      </div>
+
+      <div class="task-card">
+        <h3>Task 5.6: 在多來源綜合中保留資訊來源追溯並處理不確定性</h3>
+        <h4>必考知識</h4>
+        <ul>
+          <li>來源歸因在摘要步驟中流失：finding 被壓縮但沒保留 claim-source mapping</li>
+          <li>結構化的 claim-source mapping：synthesis agent 必須保留並合併</li>
+          <li>可信來源的衝突統計數據 → 用來源歸因標注衝突，而非隨意選一個值</li>
+          <li>時間資料：要求在結構化輸出中包含出版/收集日期，防止時間差異被誤判為矛盾</li>
+        </ul>
+        <h4>必考技能</h4>
+        <ul>
+          <li>要求 subagent 輸出結構化 claim-source mapping（source URL、文件名、相關摘錄）</li>
+          <li>報告中明確區分有充分支持的發現 vs 有爭議的發現，保留原始來源描述和方法論 context</li>
+          <li>衝突值全部保留並標注來源，讓 coordinator 決定如何調和</li>
+          <li>要求 subagent 包含出版或資料收集日期</li>
+          <li>不同內容類型用適當格式呈現：財務 → 表格、新聞 → 散文、技術 → 結構化清單</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <p>
+        <a href="domain4.html" class="btn btn-secondary">← Domain 4</a>
+        <a href="quiz.html" class="btn btn-primary">開始模擬測驗 →</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
