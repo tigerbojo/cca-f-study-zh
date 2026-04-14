@@ -10,7 +10,13 @@ const quizQuestions = [
     ],
     correct: 0,
     explanation: "當關鍵業務邏輯需要特定工具順序時（如退款前驗證客戶身份），<strong>程式化強制</strong>提供確定性保證，而 prompt 方法（B、C）只能提供機率性合規。選項 D 解決的是工具可用性而非工具順序問題。",
-    domain: "D1"
+    domain: "D1",
+    concepts: ["Hooks vs Prompt 強制", "程式化前置條件", "Agentic Loop 工具順序"],
+    resources: [
+      { type: "course", title: "Building with the Claude API — Agentic Patterns", url: "https://anthropic.skilljar.com/claude-with-the-anthropic-api", desc: "第 7-8 章涵蓋 agentic loop、tool calling、hooks 模式" },
+      { type: "doc", title: "Claude Agent SDK — Hooks 文件", url: "https://docs.anthropic.com/en/docs/agents/hooks", desc: "PostToolUse / PreToolUse hook 的官方說明" },
+      { type: "page", title: "本站 Domain 1: Task 1.4 & 1.5", url: "domain1.html", desc: "程式化強制 vs Prompt 指引的完整比較" }
+    ]
   },
   {
     scenario: "情境：客服解決方案 Agent",
@@ -23,7 +29,13 @@ const quizQuestions = [
     ],
     correct: 1,
     explanation: "Tool descriptions 是 LLM 選擇工具的<strong>主要機制</strong>。描述太簡略時，模型缺乏區分相似工具的 context。B 直接解決根因，低成本高效果。Few-shot（A）增加 token overhead 但沒修復根本問題。路由層（C）過度工程化。合併工具（D）是有效架構但作為「第一步」太重。",
-    domain: "D2"
+    domain: "D2",
+    concepts: ["Tool Description 設計", "工具選擇機制", "工具介面邊界"],
+    resources: [
+      { type: "course", title: "Building with the Claude API — Tool Use", url: "https://anthropic.skilljar.com/claude-with-the-anthropic-api", desc: "第 4-5 章 tool calling 和 tool description 最佳實踐" },
+      { type: "doc", title: "Tool Use 官方文件", url: "https://docs.anthropic.com/en/docs/build-with-claude/tool-use", desc: "如何寫有效的 tool description" },
+      { type: "page", title: "本站 Domain 2: Task 2.1", url: "domain2.html", desc: "Tool 介面設計的完整知識點" }
+    ]
   },
   {
     scenario: "情境：客服解決方案 Agent",
@@ -36,7 +48,13 @@ const quizQuestions = [
     ],
     correct: 0,
     explanation: "明確的 escalation 標準 + few-shot 範例直接解決根因：不清楚的決策邊界。B 失敗因為 LLM 自報信心校準很差 — agent 在困難案例上反而過度自信。C 過度工程化。D 解決的是不同問題：情緒不等於案例複雜度。",
-    domain: "D5"
+    domain: "D5",
+    concepts: ["Escalation 決策", "信心校準的限制", "Few-shot 範例的正確用法"],
+    resources: [
+      { type: "course", title: "Building with the Claude API — Prompt Engineering", url: "https://anthropic.skilljar.com/claude-with-the-anthropic-api", desc: "few-shot prompting 和 escalation pattern 設計" },
+      { type: "doc", title: "Prompt Engineering 官方指南", url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering", desc: "明確標準、few-shot 設計的官方最佳實踐" },
+      { type: "page", title: "本站 Domain 5: Task 5.2", url: "domain5.html", desc: "Escalation 和歧義解決模式完整解說" }
+    ]
   },
   {
     scenario: "情境：Claude Code 程式碼生成",
@@ -49,7 +67,14 @@ const quizQuestions = [
     ],
     correct: 0,
     explanation: "專案範圍的 slash command 應放在 repository 的 <code>.claude/commands/</code> 目錄中。它們會被版本控制，clone/pull 後自動可用。<code>~/.claude/commands/</code>（B）是個人用，不會透過 version control 共享。CLAUDE.md（C）是專案指令和 context，不是 command 定義。選項 D 描述的機制在 Claude Code 中不存在。",
-    domain: "D3"
+    domain: "D3",
+    concepts: ["Slash Command 作用域", "專案級 vs 用戶級設定", ".claude/ 目錄結構"],
+    resources: [
+      { type: "course", title: "Claude Code in Action", url: "https://anthropic.skilljar.com/claude-code-in-action", desc: "完整的 Claude Code 操作課程，含 commands 和 skills 設定" },
+      { type: "course", title: "Introduction to Agent Skills", url: "https://anthropic.skilljar.com/introduction-to-agent-skills", desc: "Skills 和 Commands 的差異與建立方式" },
+      { type: "doc", title: "Claude Code 官方文件 — Commands", url: "https://docs.anthropic.com/en/docs/claude-code/slash-commands", desc: "自訂 slash command 的完整說明" },
+      { type: "page", title: "本站 Domain 3: Task 3.2", url: "domain3.html", desc: "自訂 Slash Command 和 Skill 的知識點" }
+    ]
   },
   {
     scenario: "情境：Claude Code 程式碼生成",
@@ -62,7 +87,14 @@ const quizQuestions = [
     ],
     correct: 0,
     explanation: "Plan Mode 專為涉及大規模變更、多種可行方案和架構決策的複雜任務設計 — 正好是 monolith 轉微服務需要的。B 風險是在發現依賴時已做了大量返工。C 假設你不探索程式碼就知道正確結構。D 忽略了複雜度已在需求中明確陳述。",
-    domain: "D3"
+    domain: "D3",
+    concepts: ["Plan Mode vs 直接執行", "複雜度評估", "Explore subagent"],
+    resources: [
+      { type: "course", title: "Claude Code in Action — Plan Mode", url: "https://anthropic.skilljar.com/claude-code-in-action", desc: "Plan Mode 的使用時機和操作方式" },
+      { type: "course", title: "Sub-agents in Claude Code", url: "https://anthropic.skilljar.com/sub-agents-in-claude-code", desc: "Explore subagent 和 context 管理" },
+      { type: "doc", title: "Claude Code 官方文件", url: "https://docs.anthropic.com/en/docs/claude-code", desc: "Plan Mode 和直接執行模式的完整說明" },
+      { type: "page", title: "本站 Domain 3: Task 3.4", url: "domain3.html", desc: "Plan Mode vs 直接執行的判斷準則" }
+    ]
   },
   {
     scenario: "情境：Claude Code 程式碼生成",
@@ -75,7 +107,13 @@ const quizQuestions = [
     ],
     correct: 0,
     explanation: "<code>.claude/rules/</code> + glob pattern（如 <code>**/*.test.tsx</code>）允許根據檔案路徑自動套用 convention，不受目錄位置限制 — 對散佈在 codebase 各處的測試檔至關重要。B 依賴推斷，不可靠。C 需要手動觸發。D 無法跨多目錄套用。",
-    domain: "D3"
+    domain: "D3",
+    concepts: [".claude/rules/ 路徑規則", "YAML frontmatter glob", "CLAUDE.md 階層"],
+    resources: [
+      { type: "course", title: "Claude Code in Action — Configuration", url: "https://anthropic.skilljar.com/claude-code-in-action", desc: "CLAUDE.md 階層和 .claude/rules/ 設定" },
+      { type: "doc", title: "Claude Code 設定文件", url: "https://docs.anthropic.com/en/docs/claude-code/settings", desc: "CLAUDE.md、rules、commands 的完整設定說明" },
+      { type: "page", title: "本站 Domain 3: Task 3.1 & 3.3", url: "domain3.html", desc: "CLAUDE.md 階層和路徑規則的完整比較" }
+    ]
   },
   {
     scenario: "情境：多 Agent 研究系統",
@@ -88,7 +126,13 @@ const quizQuestions = [
     ],
     correct: 1,
     explanation: "Coordinator 的 log 直接揭露了根因：它把「創意產業」只分解為視覺藝術子任務。Subagent 在被分配的範圍內正確執行了任務 — 問題在於它們被分配了什麼。A、C、D 錯誤地歸咎於正確運作的下游 agent。",
-    domain: "D1"
+    domain: "D1",
+    concepts: ["任務分解策略", "Coordinator 職責", "覆蓋完整性"],
+    resources: [
+      { type: "course", title: "Building with the Claude API — Multi-Agent", url: "https://anthropic.skilljar.com/claude-with-the-anthropic-api", desc: "多 Agent 編排、Coordinator-Subagent 模式" },
+      { type: "course", title: "Sub-agents in Claude Code", url: "https://anthropic.skilljar.com/sub-agents-in-claude-code", desc: "Subagent 管理和任務委派" },
+      { type: "page", title: "本站 Domain 1: Task 1.2 & 1.6", url: "domain1.html", desc: "Coordinator 任務分解和多 Agent 編排" }
+    ]
   },
   {
     scenario: "情境：多 Agent 研究系統",
@@ -101,7 +145,14 @@ const quizQuestions = [
     ],
     correct: 0,
     explanation: "結構化錯誤 context 給 coordinator 做智慧恢復決策所需的資訊 — 是否用修改後的查詢重試、嘗試替代方案、或用部分結果繼續。B 的泛用狀態隱藏了 context。C 壓抑錯誤。D 不必要地終止可以恢復的工作流。",
-    domain: "D5"
+    domain: "D5",
+    concepts: ["結構化錯誤傳播", "存取失敗 vs 空結果", "錯誤恢復策略"],
+    resources: [
+      { type: "course", title: "Building with the Claude API — Error Handling", url: "https://anthropic.skilljar.com/claude-with-the-anthropic-api", desc: "API 錯誤處理和 MCP isError 模式" },
+      { type: "doc", title: "MCP 規範 — Error Handling", url: "https://modelcontextprotocol.io/specification/2025-11-05/server/utilities/error-handling", desc: "MCP isError flag 和結構化錯誤回應" },
+      { type: "page", title: "本站 Domain 5: Task 5.3", url: "domain5.html", desc: "跨 Agent 錯誤傳播策略" },
+      { type: "page", title: "本站 Domain 2: Task 2.2", url: "domain2.html", desc: "MCP 結構化錯誤回應設計" }
+    ]
   },
   {
     scenario: "情境：多 Agent 研究系統",
@@ -114,7 +165,13 @@ const quizQuestions = [
     ],
     correct: 0,
     explanation: "A 應用最小權限原則：只給 synthesis agent 85% 常見案例所需的工具（簡單事實驗證），複雜案例保留現有協調模式。B 的批次方式建立阻塞依賴。C 過度賦權 synthesis agent，違反職責分離。D 依賴無法可靠預測需求的投機性快取。",
-    domain: "D2"
+    domain: "D2",
+    concepts: ["Scoped Tool Access", "最小權限原則", "tool_choice 設定"],
+    resources: [
+      { type: "course", title: "Building with the Claude API — Tool Use", url: "https://anthropic.skilljar.com/claude-with-the-anthropic-api", desc: "tool_choice 設定和工具分配策略" },
+      { type: "doc", title: "Tool Use — tool_choice", url: "https://docs.anthropic.com/en/docs/build-with-claude/tool-use#controlling-claudes-output", desc: "auto / any / forced 三種 tool_choice 模式" },
+      { type: "page", title: "本站 Domain 2: Task 2.3", url: "domain2.html", desc: "工具分配和 tool_choice 設定" }
+    ]
   },
   {
     scenario: "情境：Claude Code CI/CD",
@@ -127,7 +184,13 @@ const quizQuestions = [
     ],
     correct: 0,
     explanation: "<code>-p</code>（或 <code>--print</code>）flag 是 Claude Code 在非互動模式執行的標準方式。它處理 prompt、輸出結果到 stdout、然後退出，不等待使用者輸入。其他選項引用的是不存在的功能（CLAUDE_HEADLESS、--batch）或不恰當的 Unix workaround。",
-    domain: "D3"
+    domain: "D3",
+    concepts: ["-p flag 非互動模式", "CI/CD 整合", "--output-format json"],
+    resources: [
+      { type: "course", title: "Claude Code in Action — CI/CD", url: "https://anthropic.skilljar.com/claude-code-in-action", desc: "Claude Code 在 CI/CD pipeline 中的使用方式" },
+      { type: "doc", title: "Claude Code CLI 參考", url: "https://docs.anthropic.com/en/docs/claude-code/cli-usage", desc: "-p、--output-format、--json-schema 等 CLI flag" },
+      { type: "page", title: "本站 Domain 3: Task 3.6", url: "domain3.html", desc: "Claude Code CI/CD 整合完整說明" }
+    ]
   },
   {
     scenario: "情境：Claude Code CI/CD",
@@ -140,7 +203,13 @@ const quizQuestions = [
     ],
     correct: 0,
     explanation: "Message Batches API 提供 50% 成本節省但處理時間最長 24 小時，無延遲保證。這使它不適合開發者等待結果的阻塞式 pre-merge check，但非常適合隔夜批次工作。B 錯在 batch 不保證「通常更快」。C 是誤解 — batch 結果可用 <code>custom_id</code> 關聯。D 加了不必要的複雜度。",
-    domain: "D4"
+    domain: "D4",
+    concepts: ["Message Batches API", "延遲容忍度評估", "custom_id 關聯"],
+    resources: [
+      { type: "doc", title: "Message Batches API 文件", url: "https://docs.anthropic.com/en/docs/build-with-claude/batch-processing", desc: "Batch API 的 50% 省成本、24 小時窗口、custom_id 使用" },
+      { type: "course", title: "Building with the Claude API", url: "https://anthropic.skilljar.com/claude-with-the-anthropic-api", desc: "API 使用模式和成本最佳化" },
+      { type: "page", title: "本站 Domain 4: Task 4.5", url: "domain4.html", desc: "批次處理策略完整說明" }
+    ]
   },
   {
     scenario: "情境：Claude Code CI/CD",
@@ -153,6 +222,12 @@ const quizQuestions = [
     ],
     correct: 0,
     explanation: "拆成聚焦的 pass 直接解決根因：同時處理太多檔案造成的注意力稀釋。逐檔分析確保一致的深度，獨立的 integration pass 抓跨檔問題。B 把負擔轉嫁給開發者。C 誤解了更大 context window 不解決注意力品質問題。D 要求共識反而會壓抑只被間歇性抓到的真正 bug。",
-    domain: "D4"
+    domain: "D4",
+    concepts: ["Multi-pass Review", "注意力稀釋", "Self-review 限制"],
+    resources: [
+      { type: "course", title: "Building with the Claude API — Prompt Chaining", url: "https://anthropic.skilljar.com/claude-with-the-anthropic-api", desc: "Prompt Chaining 和多 pass 架構設計" },
+      { type: "doc", title: "Prompt Engineering — 長文處理", url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering#long-context-tips", desc: "Lost-in-the-middle 效應和拆分策略" },
+      { type: "page", title: "本站 Domain 4: Task 4.6", url: "domain4.html", desc: "多 Instance 和多 Pass Review 架構" }
+    ]
   }
 ];

@@ -39,6 +39,42 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="quiz-explanation ${isAnswered ? 'show' : ''}" id="explanation">
           <strong>解析：</strong>${q.explanation}
+          ${isAnswered && q.concepts ? `
+            <div class="quiz-concepts">
+              <span class="concepts-label">相關概念：</span>
+              ${q.concepts.map(c => `<span class="concept-tag">${c}</span>`).join('')}
+            </div>
+          ` : ''}
+          ${isAnswered && answered[current] !== q.correct && q.resources ? `
+            <div class="quiz-resources">
+              <div class="resources-header">加強學習</div>
+              ${q.resources.map(r => `
+                <a href="${r.url}" class="quiz-resource-item" target="${r.type === 'page' ? '_self' : '_blank'}" rel="noopener">
+                  <span class="resource-type-icon">${r.type === 'course' ? '🎓' : r.type === 'doc' ? '📖' : '📄'}</span>
+                  <span class="resource-type-badge">${r.type === 'course' ? '課程' : r.type === 'doc' ? '文件' : '本站'}</span>
+                  <div class="quiz-resource-text">
+                    <strong>${r.title}</strong>
+                    <span>${r.desc}</span>
+                  </div>
+                </a>
+              `).join('')}
+            </div>
+          ` : ''}
+          ${isAnswered && answered[current] === q.correct && q.resources ? `
+            <div class="quiz-resources correct-resources">
+              <div class="resources-header">延伸閱讀</div>
+              ${q.resources.slice(0, 2).map(r => `
+                <a href="${r.url}" class="quiz-resource-item" target="${r.type === 'page' ? '_self' : '_blank'}" rel="noopener">
+                  <span class="resource-type-icon">${r.type === 'course' ? '🎓' : r.type === 'doc' ? '📖' : '📄'}</span>
+                  <span class="resource-type-badge">${r.type === 'course' ? '課程' : r.type === 'doc' ? '文件' : '本站'}</span>
+                  <div class="quiz-resource-text">
+                    <strong>${r.title}</strong>
+                    <span>${r.desc}</span>
+                  </div>
+                </a>
+              `).join('')}
+            </div>
+          ` : ''}
         </div>
       </div>
       <div class="quiz-nav">
@@ -75,6 +111,20 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderResult() {
     const pct = Math.round((score / quizQuestions.length) * 100);
     const pass = pct >= 72;
+
+    // Collect wrong answers by domain
+    const wrongByDomain = {};
+    const domainPages = { D1: 'domain1.html', D2: 'domain2.html', D3: 'domain3.html', D4: 'domain4.html', D5: 'domain5.html' };
+    const domainNames = { D1: 'Agentic 架構', D2: '工具與 MCP', D3: 'Claude Code', D4: 'Prompt 工程', D5: 'Context 管理' };
+    quizQuestions.forEach((q, i) => {
+      if (answered[i] !== q.correct) {
+        if (!wrongByDomain[q.domain]) wrongByDomain[q.domain] = [];
+        wrongByDomain[q.domain].push(q.concepts || []);
+      }
+    });
+
+    const wrongDomains = Object.keys(wrongByDomain);
+
     app.innerHTML = `
       <div class="quiz-result">
         <h2>測驗結果</h2>
@@ -86,6 +136,18 @@ document.addEventListener('DOMContentLoaded', () => {
         <p style="font-size: 0.85rem; color: var(--text-dim)">
           CCA-F 實際考試及格線為 720/1000（約 72%），本模擬測驗以此為參考
         </p>
+        ${wrongDomains.length > 0 ? `
+          <div class="result-review-section">
+            <h3>建議複習領域</h3>
+            ${wrongDomains.map(d => `
+              <a href="${domainPages[d]}" class="result-domain-link">
+                <span class="result-domain-badge">${d}</span>
+                <span>${domainNames[d]}</span>
+                <span class="result-domain-count">${wrongByDomain[d].length} 題答錯</span>
+              </a>
+            `).join('')}
+          </div>
+        ` : ''}
         <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
           <button class="btn btn-primary" id="retry-btn">重新測驗</button>
           <a href="index.html" class="btn btn-secondary">回到首頁</a>
